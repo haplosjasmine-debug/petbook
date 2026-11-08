@@ -1,0 +1,22 @@
+# Laravel
+backend/vendor/
+backend/.env
+backend/.env.*
+backend/storage/logs/*.log
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/public/storage
+
+# Directus
+cms/node_modules/
+cms/.node22/
+cms/.env
+cms/uploads/
+cms/*.log
+cms/snapshot.yaml
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.log

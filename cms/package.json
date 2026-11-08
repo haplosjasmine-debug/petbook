@@ -1,0 +1,24 @@
+﻿{
+  "name": "petbook-cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Directus CMS / admin front-end for PetBook. Shares the MySQL database with the Laravel backend.",
+  "scripts": {
+    "start": "directus start",
+    "bootstrap": "directus bootstrap",
+    "setup": "node scripts/setup.mjs",
+    "snapshot": "directus schema snapshot ./snapshot.yaml"
+  },
+  "keywords": [
+    "directus",
+    "petbook",
+    "cms"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20 <=22"
+  },
+  "dependencies": {
+    "directus": "11.17.4"
+  }
+}
