@@ -1,17 +1,10 @@
 ﻿import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  Clock,
-  Inbox,
-  Scissors,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, Inbox, Scissors, Users } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
 import { CheckInForm } from "@/components/shop/check-in-form";
+import { LiveRevenuePanel, LiveRevenueStat } from "@/components/shop/live-revenue";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +15,9 @@ import {
   shopAppointments,
   shopServices,
   shopStaff,
-  shopTransactions,
 } from "@/lib/queries";
 import { requireShop } from "@/lib/session";
+import { emptyShopRevenueMetrics, getShopRevenueMetrics } from "@/lib/shop-metrics";
 import { formatDate, formatMoney } from "@/lib/utils";
 
 export const metadata = { title: "Business overview" };
@@ -33,11 +26,11 @@ export default async function ShopDashboardPage() {
   const session = await requireShop();
   const shop = session.shop!;
 
-  const [appointments, services, staff, transactions] = await Promise.all([
+  const [appointments, services, staff, revenue] = await Promise.all([
     shopAppointments(shop.id).catch(() => []),
     shopServices(shop.id).catch(() => []),
     shopStaff(shop.id).catch(() => []),
-    shopTransactions(shop.id, "", 500).catch(() => []),
+    getShopRevenueMetrics(shop.id).catch(() => emptyShopRevenueMetrics()),
   ]);
 
   const serviceIds = [...new Set(appointments.map((appointment) => Number(appointment.service)))];
@@ -84,18 +77,6 @@ export default async function ShopDashboardPage() {
     )
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthTransactions = transactions.filter(
-    (transaction) =>
-      transaction.status === "paid" && new Date(transaction.date_created) >= startOfMonth
-  );
-  const monthGross = monthTransactions.reduce(
-    (total, transaction) => total + Number(transaction.amount),
-    0
-  );
-  const paidBookings = monthTransactions.length;
-  const averageBooking = paidBookings ? monthGross / paidBookings : 0;
-
   return (
     <>
       <PageHeader
@@ -115,12 +96,7 @@ export default async function ShopDashboardPage() {
         <StatCard label="Needs response" value={pendingRequests} icon={Inbox} tone="coral" />
         <StatCard label="Today's visits" value={today.length} icon={CalendarDays} />
         <StatCard label="Upcoming" value={upcoming.length} icon={Clock} tone="blue" />
-        <StatCard
-          label="Revenue this month"
-          value={formatMoney(monthGross)}
-          hint={`${paidBookings} paid bookings`}
-          icon={TrendingUp}
-        />
+        <LiveRevenueStat initial={revenue} />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
@@ -208,28 +184,11 @@ export default async function ShopDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">This month</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Gross revenue</span>
-                <span className="font-semibold">{formatMoney(monthGross)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Paid bookings</span>
-                <span className="font-semibold">{paidBookings}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 border-t pt-3">
-                <span className="text-muted-foreground">Average booking</span>
-                <span className="font-black">{formatMoney(averageBooking)}</span>
-              </div>
-              <Button asChild variant="soft" size="sm" className="w-full">
-                <Link href="/shop/reports">Open reports</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <LiveRevenuePanel initial={revenue} />
+
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link href="/shop/reports">Open full reports</Link>
+          </Button>
 
           <Card>
             <CardHeader>

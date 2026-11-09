@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -10,7 +11,7 @@ export function StatCard({
   tone = "brand",
 }: {
   label: string;
-  value: string | number;
+  value: ReactNode;
   hint?: string;
   icon?: LucideIcon;
   tone?: "brand" | "coral" | "blue" | "amber";
@@ -23,10 +24,15 @@ export function StatCard({
   } as const;
 
   return (
-    <Card>
+    <Card className="group transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-soft">
       <CardContent className="flex items-start gap-4 p-5">
         {Icon ? (
-          <span className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", tones[tone])}>
+          <span
+            className={cn(
+              "grid h-11 w-11 shrink-0 place-items-center rounded-2xl transition duration-300 group-hover:scale-110 group-hover:rotate-3",
+              tones[tone]
+            )}
+          >
             <Icon className="h-5 w-5" />
           </span>
         ) : null}

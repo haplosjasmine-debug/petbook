@@ -38,7 +38,8 @@ petbook/
 
 ### Shop owners
 
-- Dashboard for pending requests, today's visits and monthly revenue
+- Dashboard for pending requests, today's visits and live monthly revenue
+- Realtime shop revenue graph with 7/14/30-day ranges, hover details and auto-refresh
 - Confirm or decline pending bookings with a customer-visible reason
 - Manage appointments, services, staff and shop profile
 - Capture a shop GPS pin for map discovery
@@ -47,7 +48,7 @@ petbook/
 ### Platform admin
 
 - Custom revenue dashboard at `/admin`
-- Live graph polling every 10 seconds
+- Realtime graph refreshing every 4 seconds with interactive range and series controls
 - Gross booking revenue, platform commission, pending settlement and online collections
 - Top shops by revenue and recent commission payments (admin-only visibility)
 - Directus admin link for content and raw data management
