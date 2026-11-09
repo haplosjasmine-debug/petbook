@@ -103,19 +103,17 @@ const config: Config = {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
-        "pet-walk": {
-          "0%, 100%": { transform: "translateY(0) rotate(-1deg)" },
-          "25%": { transform: "translateY(-4px) rotate(1.5deg)" },
-          "50%": { transform: "translateY(0) rotate(-1deg)" },
-          "75%": { transform: "translateY(-3px) rotate(1deg)" },
+        "pet-breathe": {
+          "0%, 100%": { transform: "translateY(0) rotate(-2deg)" },
+          "50%": { transform: "translateY(-4px) rotate(-1deg)" },
         },
-        "pet-leg": {
-          "0%, 100%": { transform: "rotate(-14deg)" },
-          "50%": { transform: "rotate(14deg)" },
+        "pet-tail": {
+          "0%, 100%": { transform: "rotate(-6deg)" },
+          "50%": { transform: "rotate(10deg)" },
         },
-        "pet-parade": {
-          from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
+        "paw-drift": {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "88px 88px" },
         },
       },
       animation: {
@@ -127,9 +125,9 @@ const config: Config = {
         "float-slow": "float-soft 9s ease-in-out infinite",
         "spin-slow": "spin 24s linear infinite",
         marquee: "marquee 60s linear infinite",
-        "pet-walk": "pet-walk 0.9s ease-in-out infinite",
-        "pet-leg": "pet-leg 0.55s ease-in-out infinite",
-        "pet-parade": "pet-parade 42s linear infinite",
+        "pet-breathe": "pet-breathe 4.5s ease-in-out infinite",
+        "pet-tail": "pet-tail 2.8s ease-in-out infinite",
+        "paw-drift": "paw-drift 18s linear infinite",
       },
     },
   },

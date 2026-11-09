@@ -14,6 +14,7 @@ import {
   Star,
   Stethoscope,
 } from "lucide-react";
+import { PetLeanPanel } from "@/components/pet-lean-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -393,6 +394,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <PetLeanPanel />
 
       {announcements.length ? (
         <section className="page-shell pb-16">
