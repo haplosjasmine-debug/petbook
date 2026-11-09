@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarRange, Coins, ReceiptText, TrendingUp, Wallet } from "lucide-react";
+import { CalendarRange, CreditCard, ReceiptText, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { commissionSummary } from "@/lib/payments";
 import {
   appointmentsByIds,
   servicesByIds,
@@ -53,10 +52,8 @@ export default async function ShopReportsPage({
   ]);
 
   const paid = transactions.filter((transaction) => transaction.status === "paid");
-  const summary = commissionSummary(paid);
-  const pending = paid
-    .filter((transaction) => transaction.commission_status === "pending")
-    .reduce((total, transaction) => total + Number(transaction.commission_amount), 0);
+  const gross = paid.reduce((total, transaction) => total + Number(transaction.amount), 0);
+  const average = paid.length ? gross / paid.length : 0;
 
   const appointmentIds = paid.map((transaction) => Number(transaction.appointment));
   const appointmentRows = await appointmentsByIds(appointmentIds).catch(() => []);
@@ -105,8 +102,8 @@ export default async function ShopReportsPage({
     <>
       <PageHeader
         eyebrow="Analytics"
-        title="Reports & payouts"
-        description="Track revenue, PetBook commission, and your net payout."
+        title="Reports"
+        description="Track revenue, booking volume, and your busiest services."
         action={
           <Button asChild variant="outline" size="sm">
             <Link href="/shop/appointments?status=completed">View completed appointments</Link>
@@ -133,21 +130,26 @@ export default async function ShopReportsPage({
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Gross revenue" value={formatMoney(summary.gross)} icon={TrendingUp} />
-        <StatCard
-          label="PetBook commission"
-          value={formatMoney(summary.commission)}
-          hint={`${Number(shop.commission_rate)}% of completed bookings`}
-          icon={Coins}
-          tone="coral"
-        />
-        <StatCard label="Net payout" value={formatMoney(summary.net)} icon={Wallet} tone="blue" />
+        <StatCard label="Gross revenue" value={formatMoney(gross)} icon={TrendingUp} />
         <StatCard
           label="Paid bookings"
-          value={summary.count}
+          value={paid.length}
           hint={`${completedAppointments.length} completed visits`}
           icon={ReceiptText}
+          tone="blue"
+        />
+        <StatCard
+          label="Average booking"
+          value={formatMoney(average)}
+          icon={CreditCard}
           tone="amber"
+        />
+        <StatCard
+          label="Top service"
+          value={topServices[0]?.name ?? "No sales yet"}
+          hint={topServices[0] ? `${topServices[0].count} bookings` : undefined}
+          icon={ReceiptText}
+          tone="coral"
         />
       </div>
 
@@ -183,64 +185,29 @@ export default async function ShopReportsPage({
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Payout summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Gross</span>
-                <span className="font-semibold">{formatMoney(summary.gross)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Commission</span>
-                <span className="font-semibold text-coral-600">
-                  −{formatMoney(summary.commission)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3 border-t pt-3">
-                <span className="font-semibold">Net payout</span>
-                <span className="text-lg font-black">{formatMoney(summary.net)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 border-t pt-3 text-xs">
-                <span className="text-muted-foreground">Commission pending settlement</span>
-                <span className="font-semibold">{formatMoney(pending)}</span>
-              </div>
-              {pending > 0 ? (
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/shop/commissions">
-                    <Coins className="h-4 w-4" /> Pay commission online
-                  </Link>
-                </Button>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Top services</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {topServices.length ? (
-                topServices.map((service, index) => (
-                  <div key={`${service.name}-${index}`} className="flex items-center gap-3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-50 text-xs font-black text-brand-700">
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{service.name}</p>
-                      <p className="text-xs text-muted-foreground">{service.count} bookings</p>
-                    </div>
-                    <p className="text-sm font-bold">{formatMoney(service.revenue)}</p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top services</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {topServices.length ? (
+              topServices.map((service, index) => (
+                <div key={`${service.name}-${index}`} className="flex items-center gap-3">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-50 text-xs font-black text-brand-700">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{service.name}</p>
+                    <p className="text-xs text-muted-foreground">{service.count} bookings</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No paid services yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  <p className="text-sm font-bold">{formatMoney(service.revenue)}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No paid services yet.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="mt-6">
@@ -254,10 +221,7 @@ export default async function ShopReportsPage({
                 <th>Date</th>
                 <th>Appointment</th>
                 <th>Amount</th>
-                <th>Commission</th>
-                <th>Net</th>
                 <th>Status</th>
-                <th>Settlement</th>
               </tr>
             </thead>
             <tbody>
@@ -274,21 +238,14 @@ export default async function ShopReportsPage({
                         : transaction.appointment}
                     </td>
                     <td className="font-semibold">{formatMoney(transaction.amount)}</td>
-                    <td className="text-coral-600">
-                      −{formatMoney(transaction.commission_amount)}
-                    </td>
-                    <td className="font-semibold">{formatMoney(transaction.net_amount)}</td>
                     <td>
                       <StatusBadge status={transaction.status} />
-                    </td>
-                    <td>
-                      <StatusBadge status={transaction.commission_status} />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
                     No transactions in this range.
                   </td>
                 </tr>

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { shopSession, unauthorized } from "@/lib/authz";
 import { DirectusError, getItem, listItems, updateItem } from "@/lib/directus";
-import { notifyCustomer } from "@/lib/notifications";
+import { notifyCustomer, scheduleAppointmentReminder } from "@/lib/notifications";
 import { completeAppointment } from "@/lib/payments";
-import type { Appointment, Customer, Reminder, Shop } from "@/lib/types";
+import type { Appointment, Customer, Pet, Reminder, Service, Shop } from "@/lib/types";
 import { statusSchema } from "@/lib/validators";
 
 export async function PATCH(
@@ -24,10 +24,19 @@ export async function PATCH(
       return NextResponse.json({ message: "Appointment not found." }, { status: 404 });
     }
 
+    const reason = input.reason?.trim() ?? "";
+    const cleanReason = reason.replace(/[.!?]+$/, "");
+    if (input.status === "rejected" && reason.length < 5) {
+      return NextResponse.json(
+        { message: "Add a short reason so the customer knows why the booking was declined." },
+        { status: 422 }
+      );
+    }
+
     if (input.status === "completed") {
       const completed = await completeAppointment(appointment.id);
       return NextResponse.json({
-        message: "Appointment completed and commission recorded.",
+        message: "Appointment completed.",
         appointment: completed.appointment,
       });
     }
@@ -35,11 +44,13 @@ export async function PATCH(
     const patch: Record<string, unknown> = { status: input.status };
     if (input.notes) patch.notes = input.notes;
     if (input.status === "checked_in") patch.checked_in_at = new Date().toISOString();
-    if (input.status === "cancelled") patch.completed_at = null;
+    if (["cancelled", "rejected"].includes(input.status)) patch.completed_at = null;
+    if (input.status === "rejected") patch.rejection_reason = reason;
+    if (input.status === "confirmed") patch.rejection_reason = null;
 
     const updated = await updateItem<Appointment>("appointments", appointment.id, patch);
 
-    if (input.status === "cancelled") {
+    if (["cancelled", "rejected"].includes(input.status)) {
       const reminders = await listItems<Reminder>(
         "reminders",
         `filter[appointment][_eq]=${appointment.id}&filter[status][_eq]=scheduled`
@@ -51,25 +62,50 @@ export async function PATCH(
       );
     }
 
-    if (["confirmed", "cancelled", "no_show"].includes(input.status)) {
+    if (["confirmed", "cancelled", "rejected", "no_show"].includes(input.status)) {
       const [customerResult, shopResult] = await Promise.all([
         getItem<{ data: Customer }>("customers", Number(appointment.customer), "?fields=*"),
         getItem<{ data: Shop }>("shops", Number(appointment.shop), "?fields=*"),
       ]);
 
+      const subject =
+        input.status === "confirmed"
+          ? "Appointment confirmed"
+          : input.status === "rejected"
+            ? "Booking request declined"
+            : input.status === "cancelled"
+              ? "Appointment cancelled by the shop"
+              : "Appointment marked as no-show";
+      const body =
+        input.status === "confirmed"
+          ? `Good news! ${shopResult.data.name} confirmed your appointment. Your reminder is scheduled for 24 hours before the visit.`
+          : input.status === "rejected"
+            ? `${shopResult.data.name} could not accept this booking. Reason: ${cleanReason}. You can choose another time or contact the shop for help.`
+            : input.status === "cancelled"
+              ? `Your appointment at ${shopResult.data.name} was cancelled.${cleanReason ? ` Reason: ${cleanReason}.` : ""} Please rebook when ready.`
+              : `Your appointment at ${shopResult.data.name} was marked as a no-show. Contact the shop if you think this is a mistake.`;
+
       await notifyCustomer({
         customer: customerResult.data,
         shop: shopResult.data,
         appointment,
-        subject:
-          input.status === "cancelled"
-            ? "Appointment cancelled by the shop"
-            : `Appointment ${input.status.replace("_", " ")}`,
-        body:
-          input.status === "cancelled"
-            ? `Your appointment at ${shopResult.data.name} was cancelled. Please rebook when ready.`
-            : `Your appointment at ${shopResult.data.name} is now ${input.status.replace("_", " ")}.`,
+        subject,
+        body,
       }).catch(() => null);
+
+      if (input.status === "confirmed") {
+        const [serviceResult, petResult] = await Promise.all([
+          getItem<{ data: Service }>("services", Number(appointment.service), "?fields=*"),
+          getItem<{ data: Pet }>("pets", Number(appointment.pet), "?fields=*"),
+        ]);
+        await scheduleAppointmentReminder({
+          appointment,
+          customer: customerResult.data,
+          shop: shopResult.data,
+          serviceName: serviceResult.data.name,
+          petName: petResult.data.name,
+        }).catch(() => null);
+      }
     }
 
     return NextResponse.json({ appointment: updated });

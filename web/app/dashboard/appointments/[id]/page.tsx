@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowLeft,
   CalendarDays,
   Clock,
@@ -151,6 +152,26 @@ export default async function AppointmentDetailPage({
               ) : null}
             </CardContent>
           </Card>
+
+          {appointment.status === "rejected" ? (
+            <Card className="border-rose-200 bg-rose-50/70">
+              <CardContent className="flex items-start gap-3 p-5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700">
+                  <AlertTriangle className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-black text-rose-900">The shop could not accept this booking</p>
+                  <p className="mt-1 text-sm text-rose-800">
+                    {appointment.rejection_reason ||
+                      "Contact the shop for details, then choose another available time."}
+                  </p>
+                  <p className="mt-2 text-xs text-rose-700/80">
+                    You can book another slot with this shop or browse other trusted partners.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

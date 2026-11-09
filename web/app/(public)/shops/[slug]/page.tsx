@@ -112,8 +112,8 @@ export default async function ShopDetailPage({
                 </p>
               </div>
               <div className="rounded-xl bg-white/10 p-3">
-                <p className="text-brand-100/60">Commission</p>
-                <p className="mt-1 text-lg font-black">{Number(shop.commission_rate)}%</p>
+                <p className="text-brand-100/60">Status</p>
+                <p className="mt-1 text-lg font-black">Verified</p>
               </div>
             </div>
           </div>

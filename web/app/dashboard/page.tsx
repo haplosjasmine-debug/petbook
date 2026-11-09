@@ -9,7 +9,9 @@ import {
   PawPrint,
   ReceiptText,
   Sparkles,
+  Store,
   Syringe,
+  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -192,9 +194,9 @@ export default async function CustomerDashboardPage() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     {formatDate(nextReminder.send_at)} · {nextReminder.channel}
                   </p>
-                  <Button asChild variant="soft" size="sm" className="mt-3 w-full">
-                    <Link href="/dashboard/notifications">View reminders</Link>
-                  </Button>
+                  <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-xs text-muted-foreground">
+                    This reminder also appears in the notification bell in your header.
+                  </p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
@@ -296,10 +298,10 @@ export default async function CustomerDashboardPage() {
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3">
             {[
-              { href: "/dashboard/book", label: "Book a visit", icon: CalendarPlus },
+              { href: "/shops", label: "Browse shops", icon: Store },
               { href: "/dashboard/pets", label: "Add a pet", icon: PawPrint },
               { href: "/dashboard/loyalty", label: "Redeem points", icon: CreditCard },
-              { href: "/dashboard/profile", label: "Update profile", icon: BellRing },
+              { href: "/dashboard/profile", label: "Update profile", icon: UserRound },
             ].map((action) => (
               <Link
                 key={action.href}

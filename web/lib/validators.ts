@@ -102,9 +102,11 @@ export const statusSchema = z.object({
     "in_progress",
     "completed",
     "cancelled",
+    "rejected",
     "no_show",
   ]),
   notes: z.string().max(2000).optional().or(z.literal("")),
+  reason: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
 export const checkInSchema = z.object({

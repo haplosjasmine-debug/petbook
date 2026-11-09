@@ -173,6 +173,27 @@ async function ensureField(collection, field, definition) {
   if (created) log(`  + ${collection}.${field}`);
 }
 
+async function ensureSelectChoices(collection, field, values) {
+  const result = await raw(`/fields/${collection}/${field}`);
+  const current = result?.data ?? result;
+  const existingChoices = current?.meta?.options?.choices ?? [];
+  const existingValues = existingChoices.map((choice) => choice.value);
+  if (values.every((value) => existingValues.includes(value))) return;
+  const merged = choices([...new Set([...existingValues, ...values])]);
+  await attempt(`sync choices for ${collection}.${field}`, () =>
+    raw(`/fields/${collection}/${field}`, {
+      method: "PATCH",
+      body: {
+        meta: {
+          ...current.meta,
+          options: { ...current.meta?.options, choices: merged },
+        },
+      },
+    })
+  );
+  log(`  = choices ${collection}.${field}`);
+}
+
 async function relationExists(collection, field) {
   try {
     const result = await raw("/relations?limit=-1");
@@ -585,15 +606,31 @@ const fieldDefinitions = {
     [
       "status",
       selectField(
-        ["pending", "confirmed", "checked_in", "in_progress", "completed", "cancelled", "no_show"],
+        [
+          "pending",
+          "confirmed",
+          "checked_in",
+          "in_progress",
+          "completed",
+          "cancelled",
+          "rejected",
+          "no_show",
+        ],
         { sort: 3, width: "half", default_value: "pending" }
       ),
     ],
     ["price", decimalField({ sort: 4, width: "half" })],
     ["notes", textField({ sort: 5 })],
-    ["qr_code", stringField({ sort: 6, width: "half" }, { is_unique: true })],
-    ["checked_in_at", datetimeField({ sort: 7, width: "half" })],
-    ["completed_at", datetimeField({ sort: 8, width: "half" })],
+    [
+      "rejection_reason",
+      textField({
+        sort: 6,
+        note: "Required when a shop declines a pending booking. Shown to the customer.",
+      }),
+    ],
+    ["qr_code", stringField({ sort: 7, width: "half" }, { is_unique: true })],
+    ["checked_in_at", datetimeField({ sort: 8, width: "half" })],
+    ["completed_at", datetimeField({ sort: 9, width: "half" })],
     ["date_created", createdAtField()],
   ],
   transactions: [
@@ -901,6 +938,17 @@ async function main() {
       await ensureField(collection, field, definition);
     }
   }
+
+  await ensureSelectChoices("appointments", "status", [
+    "pending",
+    "confirmed",
+    "checked_in",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "rejected",
+    "no_show",
+  ]);
 
   log("\nRelations");
   for (const [collection, field, related] of relations) {

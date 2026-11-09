@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, Percent, Store } from "lucide-react";
+import { ExternalLink, Store } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ShopSettingsForm } from "@/components/shop/shop-settings-form";
 import { Badge } from "@/components/ui/badge";
@@ -56,12 +56,6 @@ export default async function ShopSettingsPage() {
                 <Badge variant={shop.active ? "success" : "secondary"}>
                   {shop.active ? "Active" : "Paused"}
                 </Badge>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Percent className="h-4 w-4" /> Commission
-                </span>
-                <span className="font-semibold">{Number(shop.commission_rate)}%</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Featured</span>

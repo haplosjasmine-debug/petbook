@@ -8,6 +8,7 @@ const styles: Record<string, string> = {
   in_progress: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100",
   completed: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100",
   cancelled: "bg-red-100 text-red-800 hover:bg-red-100",
+  rejected: "bg-rose-100 text-rose-800 hover:bg-rose-100",
   no_show: "bg-slate-200 text-slate-700 hover:bg-slate-200",
   paid: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100",
   refunded: "bg-amber-100 text-amber-800 hover:bg-amber-100",

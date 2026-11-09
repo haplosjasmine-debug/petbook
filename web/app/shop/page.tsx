@@ -1,15 +1,12 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import {
   ArrowRight,
   CalendarDays,
-  CalendarPlus,
-  CheckCircle2,
   Clock,
-  Coins,
+  Inbox,
   Scissors,
   TrendingUp,
   Users,
-  Wallet,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
@@ -18,7 +15,6 @@ import { CheckInForm } from "@/components/shop/check-in-form";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { commissionSummary } from "@/lib/payments";
 import {
   customersByIds,
   petsByIds,
@@ -64,10 +60,18 @@ export default async function ShopDashboardPage() {
   const endOfDay = new Date(now);
   endOfDay.setHours(23, 59, 59, 999);
 
+  const pendingRequests = appointments.filter(
+    (appointment) => appointment.status === "pending"
+  ).length;
+
   const today = appointments
     .filter((appointment) => {
       const start = new Date(appointment.start_at);
-      return start >= startOfDay && start <= endOfDay && appointment.status !== "cancelled";
+      return (
+        start >= startOfDay &&
+        start <= endOfDay &&
+        !["cancelled", "rejected", "no_show"].includes(appointment.status)
+      );
     })
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
@@ -85,44 +89,37 @@ export default async function ShopDashboardPage() {
     (transaction) =>
       transaction.status === "paid" && new Date(transaction.date_created) >= startOfMonth
   );
-  const monthSummary = commissionSummary(monthTransactions);
-  const pendingCommission = transactions
-    .filter(
-      (transaction) =>
-        transaction.status === "paid" && transaction.commission_status === "pending"
-    )
-    .reduce((total, transaction) => total + Number(transaction.commission_amount), 0);
+  const monthGross = monthTransactions.reduce(
+    (total, transaction) => total + Number(transaction.amount),
+    0
+  );
+  const paidBookings = monthTransactions.length;
+  const averageBooking = paidBookings ? monthGross / paidBookings : 0;
 
   return (
     <>
       <PageHeader
-        eyebrow={shop.city ? `Business · ${shop.city}` : "Business"}
+        eyebrow={shop.city ? `Business | ${shop.city}` : "Business"}
         title={shop.name}
-        description="A calm snapshot of today's visits, revenue, and your team."
+        description="A calm snapshot of today's visits, pending requests, and your team."
         action={
           <Button asChild>
-            <Link href="/shop/appointments">
-              <CalendarDays className="h-4 w-4" /> Manage appointments
+            <Link href="/shop/appointments?status=pending">
+              <Inbox className="h-4 w-4" /> Review requests
             </Link>
           </Button>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Needs response" value={pendingRequests} icon={Inbox} tone="coral" />
         <StatCard label="Today's visits" value={today.length} icon={CalendarDays} />
         <StatCard label="Upcoming" value={upcoming.length} icon={Clock} tone="blue" />
         <StatCard
           label="Revenue this month"
-          value={formatMoney(monthSummary.gross)}
-          hint={`${monthSummary.count} paid bookings`}
+          value={formatMoney(monthGross)}
+          hint={`${paidBookings} paid bookings`}
           icon={TrendingUp}
-        />
-        <StatCard
-          label="Commission owed"
-          value={formatMoney(pendingCommission)}
-          hint="Pending settlement"
-          icon={Coins}
-          tone="coral"
         />
       </div>
 
@@ -156,7 +153,7 @@ export default async function ShopDashboardPage() {
                           {service?.name ?? `Appointment #${appointment.id}`}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {pet?.name} ·{" "}
+                          {pet?.name} |{" "}
                           {customer ? `${customer.first_name} ${customer.last_name}` : "Customer"}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -182,6 +179,23 @@ export default async function ShopDashboardPage() {
         </Card>
 
         <div className="space-y-4">
+          {pendingRequests ? (
+            <Card className="border-coral-200 bg-orange-50/70">
+              <CardContent className="p-5">
+                <p className="flex items-center gap-2 text-sm font-black text-coral-700">
+                  <Inbox className="h-4 w-4" /> {pendingRequests} booking request
+                  {pendingRequests === 1 ? "" : "s"} waiting
+                </p>
+                <p className="mt-1 text-xs text-coral-700/80">
+                  Confirm or decline with a reason so customers are not left waiting.
+                </p>
+                <Button asChild variant="outline" size="sm" className="mt-3 w-full bg-white">
+                  <Link href="/shop/appointments?status=pending">View requests</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Quick check-in</CardTitle>
@@ -201,34 +215,19 @@ export default async function ShopDashboardPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Gross revenue</span>
-                <span className="font-semibold">{formatMoney(monthSummary.gross)}</span>
+                <span className="font-semibold">{formatMoney(monthGross)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Coins className="h-4 w-4" /> PetBook commission
-                </span>
-                <span className="font-semibold text-coral-600">
-                  −{formatMoney(monthSummary.commission)}
-                </span>
+                <span className="text-muted-foreground">Paid bookings</span>
+                <span className="font-semibold">{paidBookings}</span>
               </div>
               <div className="flex items-center justify-between gap-3 border-t pt-3">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Wallet className="h-4 w-4" /> Net payout
-                </span>
-                <span className="font-black">{formatMoney(monthSummary.net)}</span>
+                <span className="text-muted-foreground">Average booking</span>
+                <span className="font-black">{formatMoney(averageBooking)}</span>
               </div>
-              <div className="grid gap-2">
-                <Button asChild variant="soft" size="sm" className="w-full">
-                  <Link href="/shop/reports">Open reports</Link>
-                </Button>
-                {pendingCommission > 0 ? (
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <Link href="/shop/commissions">
-                      <Coins className="h-4 w-4" /> Pay commission online
-                    </Link>
-                  </Button>
-                ) : null}
-              </div>
+              <Button asChild variant="soft" size="sm" className="w-full">
+                <Link href="/shop/reports">Open reports</Link>
+              </Button>
             </CardContent>
           </Card>
 
@@ -259,27 +258,6 @@ export default async function ShopDashboardPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { href: "/shop/services", label: "Add or edit services", icon: Scissors },
-          { href: "/shop/appointments", label: "Update appointment status", icon: CheckCircle2 },
-          { href: "/shop/commissions", label: "Pay PetBook commission", icon: Coins },
-          { href: "/shop/reports", label: "Review revenue", icon: TrendingUp },
-        ].map((action) => (
-          <Link
-            key={action.href}
-            href={action.href}
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 text-sm font-semibold transition hover:border-brand-300 hover:bg-brand-50/40"
-          >
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
-              <action.icon className="h-5 w-5" />
-            </span>
-            {action.label}
-            <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
-          </Link>
-        ))}
       </div>
     </>
   );

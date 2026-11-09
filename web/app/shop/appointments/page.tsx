@@ -20,10 +20,11 @@ import { formatDate, formatMoney, titleCase } from "@/lib/utils";
 export const metadata = { title: "Appointments" };
 
 const filters = [
+  { key: "pending", label: "Needs response" },
   { key: "today", label: "Today" },
   { key: "upcoming", label: "Upcoming" },
   { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: "cancelled", label: "Cancelled / declined" },
   { key: "all", label: "All" },
 ];
 
@@ -70,8 +71,13 @@ export default async function ShopAppointmentsPage({
 
   const visible = appointments.filter((appointment) => {
     const start = new Date(appointment.start_at);
+    if (active === "pending") return appointment.status === "pending";
     if (active === "today") {
-      return start >= startOfDay && start <= endOfDay && appointment.status !== "cancelled";
+      return (
+        start >= startOfDay &&
+        start <= endOfDay &&
+        !["cancelled", "rejected", "no_show"].includes(appointment.status)
+      );
     }
     if (active === "upcoming") {
       return (
@@ -80,7 +86,9 @@ export default async function ShopAppointmentsPage({
       );
     }
     if (active === "completed") return appointment.status === "completed";
-    if (active === "cancelled") return ["cancelled", "no_show"].includes(appointment.status);
+    if (active === "cancelled") {
+      return ["cancelled", "rejected", "no_show"].includes(appointment.status);
+    }
     return true;
   });
 
@@ -168,6 +176,11 @@ export default async function ShopAppointmentsPage({
                         {appointment.notes ? (
                           <p className="mt-1 text-xs text-muted-foreground">
                             Note: {appointment.notes}
+                          </p>
+                        ) : null}
+                        {appointment.status === "rejected" && appointment.rejection_reason ? (
+                          <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                            Declined: {appointment.rejection_reason}
                           </p>
                         ) : null}
                       </div>

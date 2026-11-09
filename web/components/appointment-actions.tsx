@@ -19,7 +19,9 @@ export function AppointmentActions({
   const router = useRouter();
 
   const cancellable = ["pending", "confirmed", "checked_in"].includes(status);
-  const payable = transactionStatus !== "paid" && !["cancelled", "completed"].includes(status);
+  const payable =
+    transactionStatus !== "paid" &&
+    !["cancelled", "rejected", "completed", "no_show"].includes(status);
 
   async function cancel() {
     if (!window.confirm("Cancel this appointment? This cannot be undone.")) return;

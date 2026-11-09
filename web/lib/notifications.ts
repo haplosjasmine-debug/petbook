@@ -132,7 +132,7 @@ export async function notifyBookingCreated(options: {
     timeZone: appConfig.timezone,
   }).format(new Date(appointment.start_at));
 
-  const body = `Hi ${customer.first_name}! Your ${service.name} for ${petName} at ${shop.name} is booked for ${when}. Booking code: ${appointment.qr_code}. Total: ${formatMoney(service.price)}.`;
+  const body = `Hi ${customer.first_name}! Your ${service.name} request for ${petName} at ${shop.name} is waiting for the shop to confirm. Requested time: ${when}. Booking code: ${appointment.qr_code}. Total: ${formatMoney(service.price)}. We will notify you as soon as the shop responds.`;
 
   const records = [
     await createNotification({
@@ -141,7 +141,7 @@ export async function notifyBookingCreated(options: {
       appointment: appointment.id,
       channel: "system",
       recipient: customer.phone ?? "",
-      subject: "Booking confirmed",
+      subject: "Booking request received",
       body,
     }),
   ];
@@ -160,6 +160,27 @@ export async function notifyBookingCreated(options: {
   }
 
   await Promise.all(records.map((record) => dispatchNotification(record)));
+}
+
+export async function scheduleAppointmentReminder(options: {
+  appointment: Appointment;
+  customer: Customer;
+  shop: Shop;
+  serviceName: string;
+  petName: string;
+}) {
+  const { appointment, customer, shop, serviceName, petName } = options;
+  const existing = await listItems<Reminder>(
+    "reminders",
+    `filter[appointment][_eq]=${appointment.id}&filter[type][_eq]=upcoming&filter[status][_eq]=scheduled&limit=1`
+  );
+  if (existing.length) return;
+
+  const when = new Intl.DateTimeFormat("en-PH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: appConfig.timezone,
+  }).format(new Date(appointment.start_at));
 
   await createItem<Reminder>("reminders", {
     appointment: appointment.id,
@@ -167,7 +188,7 @@ export async function notifyBookingCreated(options: {
     send_at: new Date(new Date(appointment.start_at).getTime() - 24 * 60 * 60_000).toISOString(),
     status: "scheduled",
     channel: customer.phone ? "sms" : "email",
-    message: `Reminder: ${service.name} for ${petName} at ${shop.name} on ${when}.`,
+    message: `Reminder: ${serviceName} for ${petName} at ${shop.name} on ${when}.`,
   });
 }
 

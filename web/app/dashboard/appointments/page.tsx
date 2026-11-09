@@ -21,7 +21,7 @@ export const metadata = { title: "Appointments" };
 const filters = [
   { key: "upcoming", label: "Upcoming" },
   { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: "cancelled", label: "Cancelled / declined" },
   { key: "all", label: "All" },
 ];
 
@@ -69,7 +69,9 @@ export default async function AppointmentsPage({
       );
     }
     if (active === "completed") return appointment.status === "completed";
-    if (active === "cancelled") return ["cancelled", "no_show"].includes(appointment.status);
+    if (active === "cancelled") {
+      return ["cancelled", "rejected", "no_show"].includes(appointment.status);
+    }
     return true;
   });
 
@@ -145,14 +147,16 @@ export default async function AppointmentsPage({
                             Note: {appointment.notes}
                           </p>
                         ) : null}
+                        {appointment.status === "rejected" && appointment.rejection_reason ? (
+                          <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                            Shop response: {appointment.rejection_reason}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 border-t pt-3 lg:border-0 lg:pt-0">
                       <p className="text-lg font-black">{formatMoney(appointment.price)}</p>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/dashboard/appointments/${appointment.id}`}>Details</Link>
-                      </Button>
                       <AppointmentActions
                         appointmentId={appointment.id}
                         status={appointment.status}

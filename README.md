@@ -1,6 +1,6 @@
 # PetBook
 
-Pet grooming and veterinary booking platform for the Philippines. The current product is a Next.js 15 app backed by Directus 11 and PostgreSQL. It includes customer booking and pet records, shop operations, GPS shop discovery, PayMongo online payments (including platform commission), and a live admin revenue dashboard.
+Pet grooming and veterinary booking platform for the Philippines. The current product is a Next.js 15 app backed by Directus 11 and PostgreSQL. It includes customer booking and pet records, shop operations, GPS shop discovery, PayMongo online payments, and a live admin revenue dashboard.
 
 The older Laravel code in `backend/` and the legacy MySQL Directus install in `cms/` are not used by the current app.
 
@@ -34,21 +34,22 @@ petbook/
 - Book appointments with slot availability
 - Pay online or at the shop
 - View appointments, QR check-in codes, loyalty points and reminders
+- Receive booking updates in the notification bell and rejection reasons on appointments
 
 ### Shop owners
 
-- Dashboard for today's visits and monthly revenue
+- Dashboard for pending requests, today's visits and monthly revenue
+- Confirm or decline pending bookings with a customer-visible reason
 - Manage appointments, services, staff and shop profile
 - Capture a shop GPS pin for map discovery
-- View revenue, commission and net payout reports
-- Pay PetBook commission online through PayMongo
+- View revenue and service reports without commission details
 
 ### Platform admin
 
 - Custom revenue dashboard at `/admin`
 - Live graph polling every 10 seconds
 - Gross booking revenue, platform commission, pending settlement and online collections
-- Top shops by revenue and recent commission payments
+- Top shops by revenue and recent commission payments (admin-only visibility)
 - Directus admin link for content and raw data management
 
 ## Quick start with Docker
@@ -113,22 +114,21 @@ PAYMONGO_WEBHOOK_SECRET=dev-paymongo-webhook-secret
 PAYMONGO_PAYMENT_METHODS=gcash,maya,grab_pay,qrph,card
 ```
 
-Use `PAYMENT_PROVIDER=paymongo` and a real secret key to enable hosted checkout. With `PAYMENT_PROVIDER=mock`, shop owners can use the demo commission payment button for local testing.
+Use `PAYMENT_PROVIDER=paymongo` and a real secret key to enable hosted checkout. With `PAYMENT_PROVIDER=mock`, payments are recorded locally for testing.
 
 ## Maps and GPS
 
 Shop coordinates live on `shops.latitude` and `shops.longitude` (decimal, 10, 7). Shop owners can type coordinates or press **Use my location** in shop settings. On `/shops`, customers can press **Use my location** to sort shops by distance and center the OpenStreetMap view on their position. Shop detail pages include a map pin and Google Maps directions link. No map API key is required.
 
-## Payments and commission
+## Booking workflow
 
-Customers can pay for appointments online through PayMongo or at the shop. Completed appointments create a transaction with a platform commission, defaulting to 10%.
+New bookings start as `pending`. Shop owners can confirm or decline them from `/shop/appointments?status=pending`. Declining requires a reason, which is saved to `appointments.rejection_reason`, sent to the customer as a system notification, and shown on the customer's appointment list and detail page.
 
-Shop owners settle commission separately from customer payments:
+System notifications and upcoming reminders appear in the header notification bell. The modal marks updates as seen locally and links back to the relevant appointment.
 
-1. Open `/shop/commissions`.
-2. Review the outstanding commission balance.
-3. Pay online with PayMongo.
-4. When PayMongo sends the signed webhook, the payment is marked paid and all pending transactions for that shop are marked settled.
+## Payments and admin revenue
+
+Customers can pay for appointments online through PayMongo or at the shop. Completed appointments create a transaction with a platform commission, defaulting to 10%. Commission details are visible only in the admin revenue dashboard; shop and customer screens show booking revenue without commission or payout breakdowns.
 
 Commission checkout records are stored in `commission_payments`. The admin dashboard shows pending commission, settled commission, online commission collections, and recent commission payments.
 
@@ -158,8 +158,8 @@ npm run seed
 
 ## Business rules
 
-- Platform commission defaults to **10%** of each completed appointment.
+- New bookings require shop confirmation; declined bookings must include a customer-visible reason.
+- Platform commission defaults to **10%** of each completed appointment and is shown only to admins.
 - Customers earn loyalty points based on `LOYALTY_POINTS_PER_HUNDRED`.
-- Upcoming reminders are scheduled before a visit; follow-ups are scheduled after completion.
-- Shop owners can settle commission per shop through PayMongo checkout.
+- Upcoming reminders are scheduled after a shop confirms a visit; follow-ups are scheduled after completion.
 - Admin revenue metrics are calculated from paid transactions and commission payments.

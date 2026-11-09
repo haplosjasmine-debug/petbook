@@ -75,7 +75,7 @@ export default function AboutPage() {
               { value: "40+", label: "Partner businesses" },
               { value: "12k+", label: "Appointments booked" },
               { value: "98%", label: "Reminder delivery" },
-              { value: "10%", label: "Simple commission" },
+              { value: "24/7", label: "Online booking" },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -109,8 +109,8 @@ export default function AboutPage() {
               points, and payment history all live in one place.
             </p>
             <p>
-              Our revenue model is intentionally simple. Pet care businesses pay a 10% commission
-              on completed bookings. There are no monthly fees, no setup fees, and no surprises.
+              We partner with verified local businesses and keep the booking experience transparent
+              for pet owners. There are no setup fees or monthly fees for partners.
             </p>
           </div>
         </div>
@@ -138,23 +138,23 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section id="commission" className="page-shell py-16">
+      <section className="page-shell py-16">
         <div className="grid gap-8 rounded-[2rem] border bg-white p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
           <div>
-            <p className="eyebrow">Pricing</p>
+            <p className="eyebrow">For pet care businesses</p>
             <h2 className="mt-2 text-3xl font-black tracking-tight">
-              One fair commission. No monthly fees.
+              A calmer way to run your booking desk.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Listing your shop and using the dashboard is free. PetBook only earns when you earn:
-              a 10% commission is recorded on completed appointments and settled transparently.
+              Publish your services, manage your team, and keep appointments organised without
+              adding more admin work to your day.
             </p>
             <ul className="mt-6 space-y-3 text-sm">
               {[
                 "Free shop listing and booking page",
                 "Calendar, staff, and service management",
                 "Automatic SMS and email reminders",
-                "Commission tracking and monthly settlement",
+                "Simple reports for completed visits",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-100 text-[10px] font-black text-brand-700">
@@ -167,13 +167,9 @@ export default function AboutPage() {
           </div>
           <div className="rounded-2xl bg-brand-900 p-8 text-white">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-200">
-              Simple pricing
+              Partner tools
             </p>
-            <div className="mt-4 flex items-end gap-2">
-              <span className="text-6xl font-black">10%</span>
-              <span className="pb-2 text-sm text-brand-100/70">per completed booking</span>
-            </div>
-            <div className="mt-6 space-y-3 border-t border-white/15 pt-6 text-sm text-brand-100/80">
+            <div className="mt-4 space-y-3 border-t border-white/15 pt-6 text-sm text-brand-100/80">
               <p className="flex items-center gap-2">
                 <PawPrint className="h-4 w-4 text-coral-400" /> No monthly subscription
               </p>

@@ -101,6 +101,7 @@ export type AppointmentStatus =
   | "in_progress"
   | "completed"
   | "cancelled"
+  | "rejected"
   | "no_show";
 
 export interface Appointment {
@@ -119,6 +120,7 @@ export interface Appointment {
   qr_code: string;
   checked_in_at: string | null;
   completed_at: string | null;
+  rejection_reason: string | null;
   date_created?: string;
 }
 

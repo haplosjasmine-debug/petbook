@@ -26,14 +26,14 @@ export default function PrivacyPage() {
           <p className="mt-2">
             You can see your own profile, pets, appointments, and loyalty history. The shop you book
             with can see the details needed to provide the service. Platform administrators can
-            access records for support, fraud prevention, and commission reconciliation.
+            access records for support, fraud prevention, and payment reconciliation.
           </p>
         </section>
         <section>
           <h2 className="text-lg font-black text-foreground">Payments</h2>
           <p className="mt-2">
             Online payments are processed by PayMongo. PetBook does not store full card numbers.
-            Payment references and statuses are stored to reconcile bookings and commissions.
+            Payment references and statuses are stored to reconcile bookings and payouts.
           </p>
         </section>
         <section>

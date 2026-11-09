@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { NotificationCenter } from "@/components/notification-center";
 import { UserMenu } from "@/components/user-menu";
 import type { Session } from "@/lib/types";
 
@@ -35,14 +36,25 @@ export function DashboardShell({
             >
               Public site
             </Link>
+            {portal !== "admin" ? <NotificationCenter portal={portal} /> : null}
             <UserMenu name={name} role={session.role} dashboardHref={home} />
           </div>
         </div>
       </header>
 
-      <div className="page-shell grid gap-6 py-6 lg:grid-cols-[220px_1fr]">
-        <aside className="lg:sticky lg:top-24 lg:h-fit lg:rounded-2xl lg:border lg:bg-white/70 lg:p-3">
+      <div className="page-shell grid gap-6 py-6 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8">
+        <aside className="lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:flex-col lg:border-r lg:py-6 lg:pr-5">
           <DashboardNav portal={portal} />
+          <div className="mt-auto hidden rounded-2xl border bg-secondary/50 p-4 lg:block">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              {portal === "shop" ? "Business workspace" : "PetBook"}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {portal === "shop"
+                ? "Keep your services, team, and appointment queue up to date."
+                : "Your visits, pet records, and booking updates live here."}
+            </p>
+          </div>
         </aside>
         <main className="min-w-0 pb-16">{children}</main>
       </div>

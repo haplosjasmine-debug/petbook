@@ -20,8 +20,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-black text-foreground">Bookings and payments</h2>
           <p className="mt-2">
             Bookings are between you and the selected business. PetBook facilitates scheduling,
-            reminders, and payment. Online payments are processed by PayMongo. A 10% platform
-            commission applies to completed bookings and is deducted from the business payout.
+            reminders, and payment. Online payments are processed by PayMongo. Business fees, where
+            applicable, are described in the partner agreement.
           </p>
         </section>
         <section>

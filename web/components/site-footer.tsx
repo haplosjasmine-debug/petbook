@@ -25,7 +25,7 @@ const columns = [
     links: [
       { href: "/register?role=shop_owner", label: "List your shop" },
       { href: "/shop", label: "Business dashboard" },
-      { href: "/about#commission", label: "Pricing" },
+      { href: "/about", label: "Partner benefits" },
       { href: "/contact", label: "Partner with us" },
     ],
   },
