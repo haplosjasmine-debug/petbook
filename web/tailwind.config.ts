@@ -112,7 +112,7 @@ const config: Config = {
         "float-delayed": "float 7s ease-in-out 1.2s infinite",
         "float-slow": "float-soft 9s ease-in-out infinite",
         "spin-slow": "spin 24s linear infinite",
-        marquee: "marquee 24s linear infinite",
+        marquee: "marquee 60s linear infinite",
       },
     },
   },

@@ -211,11 +211,16 @@ export default async function HomePage() {
                 key={copy}
                 className="flex shrink-0 items-center gap-8 pr-8 text-[11px] font-black uppercase tracking-[0.2em] text-brand-100"
               >
-                {["Grooming", "Vet visits", "Boarding", "Vaccines", "Spa days", "Day care"].map(
-                  (item) => (
-                    <span key={item} className="flex items-center gap-2.5 whitespace-nowrap">
-                      <PawPrint className="h-3.5 w-3.5 text-coral-300" /> {item}
-                    </span>
+                {[0, 1, 2].map((group) =>
+                  ["Grooming", "Vet visits", "Boarding", "Vaccines", "Spa days", "Day care"].map(
+                    (item) => (
+                      <span
+                        key={`${group}-${item}`}
+                        className="flex items-center gap-2.5 whitespace-nowrap"
+                      >
+                        <PawPrint className="h-3.5 w-3.5 text-coral-300" /> {item}
+                      </span>
+                    )
                   )
                 )}
               </div>
