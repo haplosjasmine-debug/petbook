@@ -98,6 +98,29 @@ export interface ServicePackage {
   active: boolean;
 }
 
+export interface ShopGalleryItem {
+  id: number;
+  shop: number | Shop;
+  image_url: string;
+  caption: string | null;
+  pet_name: string | null;
+  customer_name: string | null;
+  featured: boolean;
+  active: boolean;
+  date_created?: string;
+}
+
+export interface Review {
+  id: number;
+  shop: number | Shop;
+  service: number | Service | null;
+  customer: number | Customer;
+  rating: number;
+  comment: string | null;
+  active: boolean;
+  date_created?: string;
+}
+
 export type AppointmentStatus =
   | "pending"
   | "confirmed"

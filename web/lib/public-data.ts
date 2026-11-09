@@ -1,13 +1,16 @@
 import { listItems } from "@/lib/directus";
 import type {
   Announcement,
+  Review,
   Service,
   ServicePackage,
   Shop,
+  ShopGalleryItem,
   SiteContent,
   Staff,
   Vaccination,
 } from "@/lib/types";
+import { summarizeReviewsByShop, type ReviewSummary } from "@/lib/reviews";
 
 export const defaultHomeContent = {
   eyebrow: "Trusted pet care, booked in minutes",
@@ -87,6 +90,36 @@ export async function getPublicServices(search = "") {
   );
 }
 
+export async function getFeaturedGallery(limit = 6) {
+  const items = await safeList<ShopGalleryItem>(
+    "shop_gallery",
+    `filter[active][_eq]=true&filter[featured][_eq]=true&fields=*,shop.id,shop.name,shop.slug,shop.city&sort=-date_created&limit=${limit}`
+  );
+
+  if (items.length) return items;
+
+  return safeList<ShopGalleryItem>(
+    "shop_gallery",
+    `filter[active][_eq]=true&fields=*,shop.id,shop.name,shop.slug,shop.city&sort=-date_created&limit=${limit}`
+  );
+}
+
+export async function getActiveReviews(limit = 60) {
+  return safeList<Review>(
+    "reviews",
+    `filter[active][_eq]=true&fields=*,shop.id,shop.name,shop.slug,shop.city,service.id,service.name,customer.id,customer.first_name,customer.last_name&sort=-date_created&limit=${limit}`
+  );
+}
+
+export async function getReviewSummaries(shopIds: number[]) {
+  if (!shopIds.length) return new Map<number, ReviewSummary>();
+  const reviews = await safeList<Review>(
+    "reviews",
+    `filter[active][_eq]=true&filter[shop][_in]=${shopIds.join(",")}&fields=shop,rating&limit=500`
+  );
+  return summarizeReviewsByShop(reviews);
+}
+
 export async function getAnnouncements(limit = 3) {
   return safeList<Announcement>(
     "announcements",
@@ -99,6 +132,8 @@ export type ShopProfile = {
   services: Service[];
   staff: Staff[];
   packages: ServicePackage[];
+  gallery: ShopGalleryItem[];
+  reviews: Review[];
 };
 
 export async function getShopProfile(slug: string): Promise<ShopProfile | null> {
@@ -110,7 +145,7 @@ export async function getShopProfile(slug: string): Promise<ShopProfile | null> 
   const shop = shops[0];
   if (!shop) return null;
 
-  const [services, staff, packages] = await Promise.all([
+  const [services, staff, packages, gallery, reviews] = await Promise.all([
     safeList<Service>(
       "services",
       `filter[shop][_eq]=${shop.id}&filter[active][_eq]=true&sort=price&limit=100`
@@ -123,9 +158,17 @@ export async function getShopProfile(slug: string): Promise<ShopProfile | null> 
       "service_packages",
       `filter[shop][_eq]=${shop.id}&filter[active][_eq]=true&sort=price&limit=20`
     ),
+    safeList<ShopGalleryItem>(
+      "shop_gallery",
+      `filter[shop][_eq]=${shop.id}&filter[active][_eq]=true&sort=-date_created&limit=12`
+    ),
+    safeList<Review>(
+      "reviews",
+      `filter[shop][_eq]=${shop.id}&filter[active][_eq]=true&fields=*,service.id,service.name,customer.id,customer.first_name,customer.last_name&sort=-date_created&limit=30`
+    ),
   ]);
 
-  return { shop, services, staff, packages };
+  return { shop, services, staff, packages, gallery, reviews };
 }
 
 export async function getShopServiceOptions(shopId: number) {

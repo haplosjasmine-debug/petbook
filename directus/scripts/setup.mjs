@@ -505,6 +505,24 @@ const collections = [
     },
   ],
   [
+    "shop_gallery",
+    {
+      icon: "photo_library",
+      note: "Customer photo gallery managed by each shop.",
+      display_template: "{{caption}}",
+      sort_field: "-date_created",
+    },
+  ],
+  [
+    "reviews",
+    {
+      icon: "reviews",
+      note: "Customer ratings and comments for shops and services.",
+      display_template: "{{comment}}",
+      sort_field: "-date_created",
+    },
+  ],
+  [
     "announcements",
     {
       icon: "campaign",
@@ -749,6 +767,73 @@ const fieldDefinitions = {
     ["sent_at", datetimeField({ sort: 7, width: "half" })],
     ["date_created", createdAtField()],
   ],
+  shop_gallery: [
+    [
+      "shop",
+      relationField("shops", {
+        template: "{{name}}",
+        note: "Shop this gallery item belongs to.",
+      }),
+    ],
+    [
+      "image_url",
+      stringField(
+        { sort: 1, note: "Public image URL for the happy customer photo." },
+        { is_nullable: false }
+      ),
+    ],
+    ["caption", stringField({ sort: 2, note: "Short caption shown with the photo." })],
+    ["pet_name", stringField({ sort: 3, width: "half" })],
+    ["customer_name", stringField({ sort: 4, width: "half" })],
+    [
+      "featured",
+      booleanField(
+        { sort: 5, width: "half", note: "Show this photo in the homepage gallery." },
+        { default_value: true }
+      ),
+    ],
+    [
+      "active",
+      booleanField(
+        { sort: 6, width: "half", note: "Show this photo on the public shop page." },
+        { default_value: true }
+      ),
+    ],
+    ["date_created", createdAtField()],
+  ],
+  reviews: [
+    ["shop", relationField("shops", { template: "{{name}}", note: "Shop being reviewed." })],
+    [
+      "service",
+      relationField("services", {
+        template: "{{name}}",
+        note: "Optional service being reviewed.",
+      }),
+    ],
+    [
+      "customer",
+      relationField("customers", {
+        template: "{{first_name}} {{last_name}}",
+        note: "Customer who left the review.",
+      }),
+    ],
+    [
+      "rating",
+      integerField(
+        { sort: 1, width: "half", note: "Star rating from 1 to 5." },
+        { is_nullable: false }
+      ),
+    ],
+    ["comment", textField({ sort: 2, note: "Customer comment shown publicly." })],
+    [
+      "active",
+      booleanField(
+        { sort: 3, width: "half", note: "Show this review on public pages." },
+        { default_value: true }
+      ),
+    ],
+    ["date_created", createdAtField()],
+  ],
   announcements: [
     ["title", stringField({ sort: 1 }, { is_nullable: false })],
     ["body", textField({ sort: 2 })],
@@ -797,6 +882,10 @@ const relations = [
   ["notifications", "customer", "customers"],
   ["notifications", "shop", "shops"],
   ["notifications", "appointment", "appointments"],
+  ["shop_gallery", "shop", "shops"],
+  ["reviews", "shop", "shops"],
+  ["reviews", "service", "services"],
+  ["reviews", "customer", "customers"],
   ["announcements", "image", "directus_files"],
   ["site_content", "image", "directus_files"],
 ];
@@ -914,9 +1003,20 @@ async function setupPolicies() {
   await ensurePermission(customerPolicy, "notifications", "read", {
     customer: { user: { _eq: "$CURRENT_USER" } },
   });
-  for (const collection of ["shops", "services", "service_packages", "announcements", "site_content"]) {
+  for (const collection of [
+    "shops",
+    "services",
+    "service_packages",
+    "shop_gallery",
+    "reviews",
+    "announcements",
+    "site_content",
+  ]) {
     await ensurePermission(customerPolicy, collection, "read");
   }
+  await ensurePermission(customerPolicy, "reviews", "create", {
+    customer: { user: { _eq: "$CURRENT_USER" } },
+  });
 
   const scoped = { shop: { owner: { _eq: "$CURRENT_USER" } } };
   const presets = { shop: { owner: { _eq: "$CURRENT_USER" } } };
@@ -931,6 +1031,7 @@ async function setupPolicies() {
     "staff",
     "services",
     "service_packages",
+    "shop_gallery",
     "appointments",
     "transactions",
     "vaccinations",
@@ -942,6 +1043,7 @@ async function setupPolicies() {
     await ensurePermission(shopPolicy, collection, "update", scoped);
     await ensurePermission(shopPolicy, collection, "delete", scoped);
   }
+  await ensurePermission(shopPolicy, "reviews", "read", scoped);
   for (const collection of ["customers", "pets", "loyalty_points"]) {
     await ensurePermission(shopPolicy, collection, "read");
   }

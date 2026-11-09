@@ -103,18 +103,6 @@ const config: Config = {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
-        "pet-breathe": {
-          "0%, 100%": { transform: "translateY(0) rotate(-2deg)" },
-          "50%": { transform: "translateY(-4px) rotate(-1deg)" },
-        },
-        "pet-tail": {
-          "0%, 100%": { transform: "rotate(-6deg)" },
-          "50%": { transform: "rotate(10deg)" },
-        },
-        "paw-drift": {
-          from: { backgroundPosition: "0 0" },
-          to: { backgroundPosition: "88px 88px" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,9 +113,6 @@ const config: Config = {
         "float-slow": "float-soft 9s ease-in-out infinite",
         "spin-slow": "spin 24s linear infinite",
         marquee: "marquee 60s linear infinite",
-        "pet-breathe": "pet-breathe 4.5s ease-in-out infinite",
-        "pet-tail": "pet-tail 2.8s ease-in-out infinite",
-        "paw-drift": "paw-drift 18s linear infinite",
       },
     },
   },

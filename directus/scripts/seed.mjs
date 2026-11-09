@@ -185,6 +185,33 @@ async function ensureService(shop, body) {
   );
 }
 
+async function ensureGallery(shop, body) {
+  return ensure(
+    "shop_gallery",
+    { shop: { _eq: shop.id }, image_url: { _eq: body.image_url } },
+    { ...body, shop: shop.id }
+  );
+}
+
+async function ensureReview(shop, customer, service, rating, comment) {
+  return ensure(
+    "reviews",
+    {
+      shop: { _eq: shop.id },
+      customer: { _eq: customer.id },
+      ...(service ? { service: { _eq: service.id } } : { service: { _null: true } }),
+    },
+    {
+      shop: shop.id,
+      customer: customer.id,
+      service: service?.id ?? null,
+      rating,
+      comment,
+      active: true,
+    }
+  );
+}
+
 async function ensurePet(customer, body) {
   return ensure(
     "pets",
@@ -470,6 +497,79 @@ async function main() {
     active: true,
   });
 
+  await ensureGallery(paws, {
+    image_url: "/images/home/hero-dog.jpg",
+    caption: "Fresh from the dryer and feeling fancy.",
+    pet_name: "Mochi",
+    customer_name: "Jasmine",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(paws, {
+    image_url: "/images/home/hero-puppy.jpg",
+    caption: "First groom, zero tears, one very happy puppy.",
+    pet_name: "Biscuit",
+    customer_name: "Bea",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(paws, {
+    image_url: "/images/home/hero-cat.jpg",
+    caption: "Quiet-room grooming for a very relaxed cat.",
+    pet_name: "Latte",
+    customer_name: "Jasmine",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(vetcare, {
+    image_url: "/images/home/hero-cat.jpg",
+    caption: "Wellness check complete and purring again.",
+    pet_name: "Luna",
+    customer_name: "Miguel",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(vetcare, {
+    image_url: "/images/home/hero-puppy.jpg",
+    caption: "Brave little patient after his vaccination.",
+    pet_name: "Bruno",
+    customer_name: "Bea",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(vetcare, {
+    image_url: "/images/home/hero-dog.jpg",
+    caption: "Healthy teeth, happy tail.",
+    pet_name: "Mochi",
+    customer_name: "Jasmine",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(happyTails, {
+    image_url: "/images/home/hero-puppy.jpg",
+    caption: "Puppy's first spa day was a success.",
+    pet_name: "Biscuit",
+    customer_name: "Bea",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(happyTails, {
+    image_url: "/images/home/hero-dog.jpg",
+    caption: "Soft, shiny, and ready for zoomies.",
+    pet_name: "Bruno",
+    customer_name: "Bea",
+    featured: true,
+    active: true,
+  });
+  await ensureGallery(happyTails, {
+    image_url: "/images/home/hero-cat.jpg",
+    caption: "A calm cat groom with all the treats.",
+    pet_name: "Luna",
+    customer_name: "Miguel",
+    featured: true,
+    active: true,
+  });
+
   const mochi = await ensurePet(jasmine, {
     name: "Mochi",
     species: "dog",
@@ -510,6 +610,16 @@ async function main() {
     color: "Chocolate",
     notes: "Very food motivated. Watch the treat intake.",
   });
+
+  await ensureReview(paws, jasmine, fullGroom, 5, "Mochi came home fluffy, calm, and absolutely gorgeous. The team really listened.");
+  await ensureReview(paws, bea, bath, 5, "Bruno is a big dog with a lot of energy, but they handled him with so much patience.");
+  await ensureReview(paws, miguel, nails, 4, "Quick, gentle, and easy to book. The paw balm was a nice touch.");
+  await ensureReview(vetcare, jasmine, wellness, 5, "Thorough checkup and clear explanations. I left with a proper care plan for Mochi.");
+  await ensureReview(vetcare, bea, vaccine, 5, "They kept Bruno relaxed the whole time and followed up the next day.");
+  await ensureReview(vetcare, miguel, dental, 4, "Helpful dental advice and no upselling. Booking was simple too.");
+  await ensureReview(happyTails, bea, puppyGroom, 5, "Biscuit's first groom was stress-free. He looked adorable and smelled amazing.");
+  await ensureReview(happyTails, jasmine, catGroom, 5, "Latte usually hates grooming, but the quiet room made a huge difference.");
+  await ensureReview(happyTails, miguel, catGroom, 4, "Luna was well cared for and the finish was lovely. Would book again.");
 
   const todayVisit = await ensureAppointment({
     qr: "DEMO-PAW-1001",

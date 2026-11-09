@@ -12,7 +12,11 @@ import {
   parseCoordinates,
   shopCoordinates,
 } from "@/lib/geo";
-import { getActiveShops, getServicesForShops } from "@/lib/public-data";
+import {
+  getActiveShops,
+  getReviewSummaries,
+  getServicesForShops,
+} from "@/lib/public-data";
 
 export const metadata = { title: "Find a shop" };
 
@@ -42,7 +46,10 @@ export default async function ShopsPage({
       })
     : loadedShops;
 
-  const services = await getServicesForShops(shops.map((shop) => shop.id));
+  const [services, reviewSummaries] = await Promise.all([
+    getServicesForShops(shops.map((shop) => shop.id)),
+    getReviewSummaries(shops.map((shop) => shop.id)),
+  ]);
   const mappedShops = shops
     .map((shop) => ({ shop, coords: shopCoordinates(shop) }))
     .filter((item): item is { shop: (typeof shops)[number]; coords: NonNullable<ReturnType<typeof shopCoordinates>> } =>
@@ -132,6 +139,8 @@ export default async function ShopsPage({
                 serviceCount={related.length}
                 fromPrice={fromPrice}
                 distanceKm={distanceByShop.get(shop.id) ?? null}
+                ratingAverage={reviewSummaries.get(shop.id)?.average}
+                reviewCount={reviewSummaries.get(shop.id)?.count}
               />
             );
           })}

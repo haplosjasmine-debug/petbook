@@ -6,9 +6,11 @@ import type {
   LoyaltyPoint,
   Pet,
   Reminder,
+  Review,
   Service,
   ServicePackage,
   Shop,
+  ShopGalleryItem,
   Staff,
   Transaction,
   Vaccination,
@@ -84,6 +86,20 @@ export async function shopStaff(shopId: number) {
 
 export async function shopServices(shopId: number) {
   return listItems<Service>("services", `filter[shop][_eq]=${shopId}&sort=name&limit=100`);
+}
+
+export async function shopGallery(shopId: number) {
+  return listItems<ShopGalleryItem>(
+    "shop_gallery",
+    `filter[shop][_eq]=${shopId}&sort=-date_created&limit=100`
+  );
+}
+
+export async function shopReviews(shopId: number, limit = 100) {
+  return listItems<Review>(
+    "reviews",
+    `filter[shop][_eq]=${shopId}&fields=*,service.id,service.name,customer.id,customer.first_name,customer.last_name&sort=-date_created&limit=${limit}`
+  );
 }
 
 export async function shopPackages(shopId: number) {

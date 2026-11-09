@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   CreditCard,
+  Images,
   LayoutDashboard,
   LineChart,
   PawPrint,
   Scissors,
   Settings,
+  Star,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,8 @@ const items = {
     { href: "/shop", label: "Overview", icon: LayoutDashboard },
     { href: "/shop/appointments", label: "Appointments", icon: CalendarDays },
     { href: "/shop/services", label: "Services", icon: Scissors },
+    { href: "/shop/gallery", label: "Gallery", icon: Images },
+    { href: "/shop/reviews", label: "Reviews", icon: Star },
     { href: "/shop/staff", label: "Staff", icon: Users },
     { href: "/shop/reports", label: "Reports", icon: LineChart },
     { href: "/shop/settings", label: "Settings", icon: Settings },

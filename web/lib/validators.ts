@@ -70,6 +70,26 @@ export const serviceSchema = z.object({
   active: z.boolean().optional().default(true),
 });
 
+export const gallerySchema = z.object({
+  image_url: z.string().trim().min(1, "Add a photo URL.").max(500),
+  caption: z.string().trim().max(240).optional().or(z.literal("")),
+  pet_name: z.string().trim().max(80).optional().or(z.literal("")),
+  customer_name: z.string().trim().max(80).optional().or(z.literal("")),
+  featured: z.boolean().optional().default(true),
+  active: z.boolean().optional().default(true),
+});
+
+export const reviewSchema = z.object({
+  shop: z.coerce.number().int().positive(),
+  service: z.coerce.number().int().positive().nullable().optional(),
+  rating: z.coerce.number().int().min(1, "Choose a star rating.").max(5),
+  comment: z
+    .string()
+    .trim()
+    .min(4, "Add a short comment about your visit.")
+    .max(1000, "Keep your comment under 1000 characters."),
+});
+
 export const staffSchema = z.object({
   name: z.string().min(2).max(150),
   role: z.enum(["groomer", "vet", "assistant", "manager"]),

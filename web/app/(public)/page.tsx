@@ -4,42 +4,48 @@ import {
   ArrowRight,
   BellRing,
   CalendarCheck,
-  CheckCircle2,
   HeartPulse,
   MapPin,
   PawPrint,
-  Scissors,
   ShieldCheck,
   Sparkles,
   Star,
-  Stethoscope,
 } from "lucide-react";
-import { PetLeanPanel } from "@/components/pet-lean-panel";
+import { RatingStars } from "@/components/rating-stars";
+import { ReviewCard } from "@/components/review-card";
+import { ShopGalleryGrid } from "@/components/shop-gallery-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ServiceCard } from "@/components/service-card";
 import { ShopCard } from "@/components/shop-card";
 import {
+  getActiveReviews,
   getAnnouncements,
+  getFeaturedGallery,
   getFeaturedShops,
   getHomeContent,
-  getPublicServices,
+  getReviewSummaries,
   getServicesForShops,
 } from "@/lib/public-data";
+import { summarizeReviews } from "@/lib/reviews";
 import { formatDate } from "@/lib/utils";
 
 export default async function HomePage() {
-  const [content, shops, services, announcements] = await Promise.all([
+  const [content, shops, gallery, announcements, reviews] = await Promise.all([
     getHomeContent(),
     getFeaturedShops(3),
-    getPublicServices(),
+    getFeaturedGallery(6),
     getAnnouncements(3),
+    getActiveReviews(60),
   ]);
 
   const shopIds = shops.map((shop) => shop.id);
-  const shopServices = await getServicesForShops(shopIds);
-  const featuredServices = services.slice(0, 6);
+  const [shopServices, reviewSummaries] = await Promise.all([
+    getServicesForShops(shopIds),
+    getReviewSummaries(shopIds),
+  ]);
+  const reviewSummary = summarizeReviews(reviews);
+  const featuredReviews = reviews.slice(0, 4);
 
   return (
     <>
@@ -280,6 +286,8 @@ export default async function HomePage() {
                   shop={shop}
                   serviceCount={related.length}
                   fromPrice={fromPrice}
+                  ratingAverage={reviewSummaries.get(shop.id)?.average}
+                  reviewCount={reviewSummaries.get(shop.id)?.count}
                 />
               );
             })}
@@ -301,54 +309,30 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="bg-secondary/60 py-16">
-        <div className="page-shell">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-            <div>
-              <p className="eyebrow">Popular services</p>
-              <h2 className="mt-1 text-3xl font-black tracking-tight">
-                Everything your pet needs, in one place
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                From routine grooming to veterinary checkups, compare services and book the right
-                care in minutes.
-              </p>
-              <div className="mt-6 space-y-3">
-                {[
-                  { icon: Scissors, label: "Grooming & spa" },
-                  { icon: Stethoscope, label: "Veterinary care" },
-                  { icon: PawPrint, label: "Boarding & day care" },
-                  { icon: CheckCircle2, label: "Vaccination packages" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3 text-sm font-semibold">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-brand-700 shadow-sm">
-                      <item.icon className="h-4 w-4" />
-                    </span>
-                    {item.label}
-                  </div>
-                ))}
+      {gallery.length ? (
+        <section id="gallery" className="scroll-mt-20 bg-secondary/60 py-16">
+          <div className="page-shell">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="eyebrow">Customer gallery</p>
+                <h2 className="mt-1 text-3xl font-black tracking-tight">
+                  Happy pets, fresh from the shop
+                </h2>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                  Real photos from partner shops. See the wags, purrs, and fresh cuts before you
+                  book.
+                </p>
               </div>
-              <Button asChild className="mt-6">
-                <Link href="/services">Explore services</Link>
+              <Button asChild variant="outline">
+                <Link href="/shops">
+                  Browse shop galleries <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              {featuredServices.length ? (
-                featuredServices.map((service) => (
-                  <ServiceCard key={service.id} service={service} />
-                ))
-              ) : (
-                <Card className="sm:col-span-2">
-                  <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                    Services appear here once partner shops are published.
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            <ShopGalleryGrid items={gallery} showShop className="mt-8" />
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="page-shell py-16">
         <div className="text-center">
@@ -395,7 +379,73 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <PetLeanPanel />
+      <section className="relative overflow-hidden bg-brand-950 py-16 text-white sm:py-20">
+        <div className="hero-grid absolute inset-0 opacity-35" />
+        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+        <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-coral-500/20 blur-3xl" />
+
+        <div className="page-shell relative grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-brand-100">
+              <Star className="h-3.5 w-3.5 fill-coral-300 text-coral-300" /> Loved by pet parents
+            </span>
+            <h2 className="mt-5 max-w-xl text-balance text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+              The kind of reviews that wag back.
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-brand-100/80 sm:text-base">
+              Real ratings and comments from customers after real visits. Read the stories, compare
+              services, and book with a little more confidence.
+            </p>
+
+            {reviewSummary.count ? (
+              <div className="mt-7 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                <p className="text-4xl font-black leading-none">
+                  {reviewSummary.average.toFixed(1)}
+                </p>
+                <div>
+                  <RatingStars
+                    rating={reviewSummary.average}
+                    starClassName="h-4 w-4 text-amber-300"
+                  />
+                  <p className="mt-1 text-xs font-semibold text-brand-100/70">
+                    {reviewSummary.count} customer review
+                    {reviewSummary.count === 1 ? "" : "s"} and counting
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Button asChild size="lg" variant="accent">
+                <Link href="/shops">
+                  Find a trusted shop <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-white/5 text-white hover:bg-white/15"
+              >
+                <Link href="/services">Compare services</Link>
+              </Button>
+            </div>
+          </div>
+
+          {featuredReviews.length ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {featuredReviews.map((review) => (
+                <ReviewCard key={review.id} review={review} showShop tone="dark" />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-8 text-sm text-brand-100/70 backdrop-blur">
+              This wall of love is waiting for its first review. Book a visit with a partner shop
+              and share how it went.
+            </div>
+          )}
+        </div>
+      </section>
 
       {announcements.length ? (
         <section className="page-shell pb-16">

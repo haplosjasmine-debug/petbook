@@ -5,18 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistance } from "@/lib/geo";
 import type { Shop } from "@/lib/types";
-import { initials } from "@/lib/utils";
+import { formatMoney, initials } from "@/lib/utils";
 
 export function ShopCard({
   shop,
   serviceCount,
   fromPrice,
   distanceKm,
+  ratingAverage,
+  reviewCount,
 }: {
   shop: Shop;
   serviceCount?: number;
   fromPrice?: number | string | null;
   distanceKm?: number | null;
+  ratingAverage?: number;
+  reviewCount?: number;
 }) {
   return (
     <Card className="group overflow-hidden">
@@ -36,7 +40,11 @@ export function ShopCard({
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-lg font-black leading-tight">{shop.name}</h3>
             <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> 4.9
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              {ratingAverage ? ratingAverage.toFixed(1) : "New"}
+              {reviewCount ? (
+                <span className="font-semibold text-amber-700/70">({reviewCount})</span>
+              ) : null}
             </span>
           </div>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
@@ -59,7 +67,7 @@ export function ShopCard({
           <div className="text-xs text-muted-foreground">
             {serviceCount ? `${serviceCount} services` : "Grooming & vet care"}
             {fromPrice ? (
-              <span className="ml-2 font-bold text-foreground">from ₱{Number(fromPrice).toFixed(0)}</span>
+              <span className="ml-2 font-bold text-foreground">from {formatMoney(fromPrice)}</span>
             ) : null}
           </div>
           <Button asChild size="sm" variant="soft">

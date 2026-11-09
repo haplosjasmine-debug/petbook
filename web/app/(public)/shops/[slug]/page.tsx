@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   CalendarCheck,
   CalendarDays,
+  Camera,
   CheckCircle2,
   Clock,
   Mail,
@@ -15,14 +16,20 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
+import { ReviewCard } from "@/components/review-card";
+import { ReviewForm } from "@/components/review-form";
+import { ReviewSummaryPanel } from "@/components/review-summary";
 import { ServiceImageCollage } from "@/components/service-images";
+import { ShopGalleryGrid } from "@/components/shop-gallery-grid";
 import { ShopMap } from "@/components/shop-map";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopCoordinates } from "@/lib/geo";
 import { getShopProfile } from "@/lib/public-data";
+import { summarizeReviews, summarizeReviewsByService } from "@/lib/reviews";
 import { serviceAvailabilityLabel } from "@/lib/service-availability";
+import { getSession } from "@/lib/session";
 import { formatMoney, initials, titleCase } from "@/lib/utils";
 
 export default async function ShopDetailPage({
@@ -31,10 +38,12 @@ export default async function ShopDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const profile = await getShopProfile(slug);
+  const [profile, session] = await Promise.all([getShopProfile(slug), getSession()]);
   if (!profile) notFound();
 
-  const { shop, services, staff, packages } = profile;
+  const { shop, services, staff, packages, gallery, reviews } = profile;
+  const reviewSummary = summarizeReviews(reviews);
+  const serviceSummaries = summarizeReviewsByService(reviews);
   const coords = shopCoordinates(shop);
   const directionsUrl = coords
     ? `https://www.google.com/maps/dir/?api=1&destination=${coords.latitude},${coords.longitude}`
@@ -59,7 +68,12 @@ export default async function ShopDetailPage({
                 <MapPin className="h-4 w-4" /> {shop.address || shop.city || "Philippines"}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Star className="h-4 w-4 fill-coral-400 text-coral-400" /> 4.9 · 312 reviews
+                <Star className="h-4 w-4 fill-coral-400 text-coral-400" />
+                {reviewSummary.count
+                  ? `${reviewSummary.average.toFixed(1)} (${reviewSummary.count} review${
+                      reviewSummary.count === 1 ? "" : "s"
+                    })`
+                  : "New on PetBook"}
               </span>
             </p>
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-brand-100/85">
@@ -72,6 +86,18 @@ export default async function ShopDetailPage({
                   Book an appointment <CalendarCheck className="h-4 w-4" />
                 </Link>
               </Button>
+              {gallery.length ? (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/15"
+                >
+                  <a href="#gallery">
+                    <Camera className="h-4 w-4" /> Happy customers
+                  </a>
+                </Button>
+              ) : null}
               {shop.phone ? (
                 <Button
                   asChild
@@ -158,6 +184,15 @@ export default async function ShopDetailPage({
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className="font-black">{service.name}</h3>
                               <Badge variant="secondary">{titleCase(service.category)}</Badge>
+                              {serviceSummaries.get(service.id)?.count ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                  {serviceSummaries.get(service.id)!.average.toFixed(1)}
+                                  <span className="font-semibold text-amber-700/70">
+                                    ({serviceSummaries.get(service.id)!.count})
+                                  </span>
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
                               {service.description || "Professional care from a trusted team."}
@@ -194,6 +229,60 @@ export default async function ShopDetailPage({
                   </Card>
                 )}
               </div>
+            </div>
+
+            {gallery.length ? (
+              <div id="gallery" className="scroll-mt-24">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="eyebrow">Happy customers</p>
+                    <h2 className="mt-1 text-2xl font-black tracking-tight">
+                      Pets who left smiling
+                    </h2>
+                  </div>
+                  <Badge variant="secondary">{gallery.length} photos</Badge>
+                </div>
+                <ShopGalleryGrid items={gallery} className="mt-5" />
+              </div>
+            ) : null}
+
+            <div id="reviews" className="scroll-mt-24">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="eyebrow">Reviews</p>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight">
+                    What pet parents say
+                  </h2>
+                </div>
+                {reviewSummary.count ? (
+                  <Badge variant="secondary">{reviewSummary.count} reviews</Badge>
+                ) : null}
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+                <ReviewSummaryPanel summary={reviewSummary} />
+                <ReviewForm
+                  shopId={shop.id}
+                  shopSlug={shop.slug}
+                  services={services}
+                  signedIn={Boolean(session)}
+                  isCustomer={session?.role === "Customer"}
+                />
+              </div>
+
+              {reviews.length ? (
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {reviews.slice(0, 8).map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="mt-4 border-dashed bg-white/60">
+                  <CardContent className="p-6 text-sm text-muted-foreground">
+                    No reviews yet. Be the first customer to share your experience.
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {packages.length ? (
