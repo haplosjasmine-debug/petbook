@@ -66,9 +66,6 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">Sign in</Link>
               </Button>
-              <Button asChild size="sm">
-                <Link href="/register">Get started</Link>
-              </Button>
             </>
           )}
         </div>
@@ -115,18 +112,11 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Button asChild variant="outline">
-                  <Link href="/login" onClick={() => setOpen(false)}>
-                    Sign in
-                  </Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/register" onClick={() => setOpen(false)}>
-                    Get started
-                  </Link>
-                </Button>
-              </div>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login" onClick={() => setOpen(false)}>
+                  Sign in
+                </Link>
+              </Button>
             )}
           </div>
         </div>
