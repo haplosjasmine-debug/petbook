@@ -27,6 +27,14 @@ export async function PATCH(
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.category !== undefined ? { category: input.category } : {}),
       ...(input.description !== undefined ? { description: input.description || null } : {}),
+      ...(input.images !== undefined ? { images: input.images } : {}),
+      ...(input.available_days !== undefined
+        ? { available_days: input.available_days }
+        : {}),
+      ...(input.available_from !== undefined
+        ? { available_from: input.available_from }
+        : {}),
+      ...(input.available_to !== undefined ? { available_to: input.available_to } : {}),
       ...(input.duration_min !== undefined ? { duration_min: input.duration_min } : {}),
       ...(input.price !== undefined ? { price: input.price } : {}),
       ...(input.active !== undefined ? { active: input.active } : {}),

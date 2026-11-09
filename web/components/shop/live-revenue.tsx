@@ -40,8 +40,8 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
     0
   );
   const selectedBookings = visible.reduce((total, point) => total + point.bookings, 0);
-  const graphWidth = 400;
-  const graphHeight = 124;
+  const graphWidth = 600;
+  const graphHeight = 150;
   const graphPadding = 10;
   const graphDenominator = Math.max(visible.length - 1, 1);
   const maximum = Math.max(
@@ -85,7 +85,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
   }
 
   return (
-    <Card className="relative overflow-hidden border-brand-700 bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 text-white shadow-soft">
+    <Card className="relative overflow-hidden border-brand-600 bg-gradient-to-br from-brand-700 via-brand-900 to-brand-950 text-white shadow-[0_28px_80px_-32px_rgba(11,58,54,0.8)] ring-1 ring-white/10">
       <div className="pointer-events-none absolute -right-14 -top-16 h-44 w-44 rounded-full bg-coral-400/20 blur-3xl motion-safe:animate-float-slow" />
       <div className="pointer-events-none absolute -bottom-20 -left-12 h-40 w-40 rounded-full bg-brand-300/15 blur-3xl motion-safe:animate-float" />
 
@@ -108,7 +108,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
             </span>
             {live ? "Realtime revenue" : "Reconnecting"}
           </p>
-          <CardTitle className="mt-2 text-base text-white">Revenue pulse</CardTitle>
+          <CardTitle className="mt-2 text-lg text-white">Revenue pulse</CardTitle>
         </div>
         <Button
           type="button"
@@ -168,10 +168,10 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold text-brand-100/65">
-            Last {range} days · {mode === "revenue" ? "gross revenue" : "paid bookings"}
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-100/65">
+            Last {range} days - {mode === "revenue" ? "gross revenue" : "paid bookings"}
           </p>
-          <p className="mt-1 text-3xl font-black tracking-tight">
+          <p className="mt-2 text-5xl font-black tracking-tight drop-shadow-sm sm:text-6xl xl:text-7xl">
             {mode === "revenue" ? (
               <AnimatedMoney value={selectedTotal} />
             ) : (
@@ -183,7 +183,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
         <div>
           <svg
             viewBox={`0 0 ${graphWidth} ${graphHeight}`}
-            className="h-28 w-full cursor-crosshair overflow-visible"
+            className="h-auto max-h-80 w-full cursor-crosshair overflow-visible"
             onMouseMove={inspectGraph}
             onMouseLeave={() => setActiveIndex(null)}
             role="img"
@@ -259,7 +259,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl border border-white/10 bg-white/5 px-2 py-2.5">
             <p className="text-[9px] font-bold uppercase tracking-wide text-brand-100/60">Today</p>
-            <p className="mt-1 text-sm font-black">
+            <p className="mt-1 text-base font-black">
               <AnimatedMoney value={data.revenue.todayGross} />
             </p>
           </div>
@@ -267,7 +267,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
             <p className="text-[9px] font-bold uppercase tracking-wide text-brand-100/60">
               Average
             </p>
-            <p className="mt-1 text-sm font-black">
+            <p className="mt-1 text-base font-black">
               <AnimatedMoney value={data.revenue.averageBooking} />
             </p>
           </div>
@@ -275,7 +275,7 @@ export function LiveRevenuePanel({ initial }: { initial: ShopRevenueMetrics }) {
             <p className="text-[9px] font-bold uppercase tracking-wide text-brand-100/60">
               Bookings
             </p>
-            <p className="mt-1 text-sm font-black">
+            <p className="mt-1 text-base font-black">
               <AnimatedNumber value={selectedBookings} />
             </p>
           </div>

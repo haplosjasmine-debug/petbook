@@ -78,6 +78,10 @@ export interface Service {
   name: string;
   category: "grooming" | "veterinary" | "package" | string;
   description: string | null;
+  images: string[] | null;
+  available_days: string[] | null;
+  available_from: string | null;
+  available_to: string | null;
   duration_min: number;
   price: number | string;
   active: boolean;

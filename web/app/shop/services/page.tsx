@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Clock, Scissors, Stethoscope } from "lucide-react";
+import { CalendarDays, Clock, Scissors, Stethoscope } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { ServiceImageCollage } from "@/components/service-images";
 import {
   DeleteServiceButton,
   ServiceFormDialog,
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopServices } from "@/lib/queries";
 import { requireShop } from "@/lib/session";
+import { serviceAvailabilityLabel } from "@/lib/service-availability";
 import { formatMoney, titleCase } from "@/lib/utils";
 
 export const metadata = { title: "Services" };
@@ -35,13 +37,21 @@ export default async function ShopServicesPage() {
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
-                      {service.category === "veterinary" ? (
-                        <Stethoscope className="h-5 w-5" />
-                      ) : (
-                        <Scissors className="h-5 w-5" />
-                      )}
-                    </span>
+                    {service.images?.length ? (
+                      <ServiceImageCollage
+                        images={service.images}
+                        name={service.name}
+                        className="h-16 w-20 shrink-0 rounded-xl"
+                      />
+                    ) : (
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
+                        {service.category === "veterinary" ? (
+                          <Stethoscope className="h-5 w-5" />
+                        ) : (
+                          <Scissors className="h-5 w-5" />
+                        )}
+                      </span>
+                    )}
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-black">{service.name}</h3>
@@ -63,9 +73,15 @@ export default async function ShopServicesPage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between gap-2 border-t pt-3">
-                  <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {service.duration_min} min
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <p className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> {service.duration_min} min
+                    </p>
+                    <p className="inline-flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5" />{" "}
+                      {serviceAvailabilityLabel(service)}
+                    </p>
+                  </div>
                   <div className="flex items-center gap-1">
                     <ServiceFormDialog service={service} label="Edit" variant="ghost" />
                     <DeleteServiceButton serviceId={service.id} />

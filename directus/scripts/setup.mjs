@@ -262,6 +262,14 @@ function integerField(overrides = {}, schema = {}) {
   };
 }
 
+function jsonField(overrides = {}, schema = {}) {
+  return {
+    type: "json",
+    schema: { is_nullable: true, ...schema },
+    meta: textMeta({ interface: "list", ...overrides }),
+  };
+}
+
 function booleanField(overrides = {}, schema = {}) {
   return {
     type: "boolean",
@@ -583,7 +591,25 @@ const fieldDefinitions = {
     ["duration_min", integerField({ sort: 3, width: "half" }, { default_value: 60 })],
     ["price", decimalField({ sort: 4, width: "half" }, { default_value: 0 })],
     ["description", textField({ sort: 5 })],
-    ["active", booleanField({ sort: 6, width: "half" }, { default_value: true })],
+    [
+      "images",
+      jsonField({
+        sort: 6,
+        note: "Paste image URLs. The first image is used as the cover.",
+        options: { template: "{{value}}" },
+      }),
+    ],
+    [
+      "available_days",
+      jsonField({
+        sort: 7,
+        note: "Days this service can be booked, e.g. mon,tue,wed,thu,fri,sat.",
+        options: { template: "{{value}}" },
+      }),
+    ],
+    ["available_from", stringField({ sort: 8, width: "half", note: "24-hour time, e.g. 09:00." })],
+    ["available_to", stringField({ sort: 9, width: "half", note: "24-hour time, e.g. 18:00." })],
+    ["active", booleanField({ sort: 10, width: "half" }, { default_value: true })],
   ],
   service_packages: [
     ["shop", relationField("shops", { template: "{{name}}" })],

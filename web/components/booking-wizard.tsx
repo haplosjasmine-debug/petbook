@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { serviceAvailabilityLabel } from "@/lib/service-availability";
 import type { Appointment, Pet, Service, Shop, Staff } from "@/lib/types";
 import { formatMoney, titleCase } from "@/lib/utils";
 
@@ -328,6 +329,10 @@ export function BookingWizard({
                 <p className="font-bold">{service.name}</p>
                 <p className="mt-0.5 text-xs text-brand-900/70">
                   {service.description || "Professional care from a trusted team."}
+                </p>
+                <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-brand-800">
+                  <CalendarDays className="h-3.5 w-3.5" />{" "}
+                  {serviceAvailabilityLabel(service)}
                 </p>
               </div>
             ) : null}

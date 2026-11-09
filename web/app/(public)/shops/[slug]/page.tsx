@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   CalendarCheck,
+  CalendarDays,
   CheckCircle2,
   Clock,
   Mail,
@@ -14,12 +15,14 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
+import { ServiceImageCollage } from "@/components/service-images";
 import { ShopMap } from "@/components/shop-map";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopCoordinates } from "@/lib/geo";
 import { getShopProfile } from "@/lib/public-data";
+import { serviceAvailabilityLabel } from "@/lib/service-availability";
 import { formatMoney, initials, titleCase } from "@/lib/utils";
 
 export default async function ShopDetailPage({
@@ -136,13 +139,21 @@ export default async function ShopDetailPage({
                     <Card key={service.id}>
                       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-start gap-4">
-                          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
-                            {service.category === "veterinary" ? (
-                              <Stethoscope className="h-5 w-5" />
-                            ) : (
-                              <Scissors className="h-5 w-5" />
-                            )}
-                          </span>
+                          {service.images?.length ? (
+                            <ServiceImageCollage
+                              images={service.images}
+                              name={service.name}
+                              className="h-24 w-24 shrink-0 rounded-xl sm:h-28 sm:w-32"
+                            />
+                          ) : (
+                            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
+                              {service.category === "veterinary" ? (
+                                <Stethoscope className="h-5 w-5" />
+                              ) : (
+                                <Scissors className="h-5 w-5" />
+                              )}
+                            </span>
+                          )}
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className="font-black">{service.name}</h3>
@@ -151,9 +162,15 @@ export default async function ShopDetailPage({
                             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
                               {service.description || "Professional care from a trusted team."}
                             </p>
-                            <p className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="h-3.5 w-3.5" /> {service.duration_min} minutes
-                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" /> {service.duration_min} minutes
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <CalendarDays className="h-3.5 w-3.5" />{" "}
+                                {serviceAvailabilityLabel(service)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4 border-t pt-3 sm:border-0 sm:pt-0">

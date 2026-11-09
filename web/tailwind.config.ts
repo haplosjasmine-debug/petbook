@@ -103,6 +103,20 @@ const config: Config = {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
+        "pet-walk": {
+          "0%, 100%": { transform: "translateY(0) rotate(-1deg)" },
+          "25%": { transform: "translateY(-4px) rotate(1.5deg)" },
+          "50%": { transform: "translateY(0) rotate(-1deg)" },
+          "75%": { transform: "translateY(-3px) rotate(1deg)" },
+        },
+        "pet-leg": {
+          "0%, 100%": { transform: "rotate(-14deg)" },
+          "50%": { transform: "rotate(14deg)" },
+        },
+        "pet-parade": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -113,6 +127,9 @@ const config: Config = {
         "float-slow": "float-soft 9s ease-in-out infinite",
         "spin-slow": "spin 24s linear infinite",
         marquee: "marquee 60s linear infinite",
+        "pet-walk": "pet-walk 0.9s ease-in-out infinite",
+        "pet-leg": "pet-leg 0.55s ease-in-out infinite",
+        "pet-parade": "pet-parade 42s linear infinite",
       },
     },
   },

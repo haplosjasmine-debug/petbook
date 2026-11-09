@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { appConfig } from "@/lib/config";
 import { listItems } from "@/lib/directus";
+import { isServiceAvailableOnDate } from "@/lib/service-availability";
 import type { Appointment } from "@/lib/types";
 
 export type TimeSlot = {
@@ -45,6 +46,8 @@ export async function buildSlots(options: {
   durationMin: number;
   opensAt?: string;
   closesAt?: string;
+  availableDays?: string[] | null;
+  timezone?: string;
   stepMin?: number;
 }) {
   const {
@@ -54,8 +57,17 @@ export async function buildSlots(options: {
     durationMin,
     opensAt = "09:00",
     closesAt = "18:00",
+    availableDays = null,
+    timezone = appConfig.timezone,
     stepMin = 30,
   } = options;
+
+  if (
+    availableDays?.length &&
+    !isServiceAvailableOnDate({ available_days: availableDays }, date, timezone)
+  ) {
+    return [];
+  }
 
   const [openHour, openMinute] = opensAt.split(":").map(Number);
   const [closeHour, closeMinute] = closesAt.split(":").map(Number);

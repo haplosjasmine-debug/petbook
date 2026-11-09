@@ -57,6 +57,14 @@ export const serviceSchema = z.object({
   name: z.string().min(2).max(150),
   category: z.enum(["grooming", "veterinary", "package"]),
   description: z.string().max(2000).optional().or(z.literal("")),
+  images: z.array(z.string().trim().min(1).max(500)).max(8).optional(),
+  available_days: z
+    .array(z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]))
+    .min(1)
+    .max(7)
+    .optional(),
+  available_from: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  available_to: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   duration_min: z.coerce.number().int().min(5).max(600),
   price: z.coerce.number().min(0).max(100000),
   active: z.boolean().optional().default(true),

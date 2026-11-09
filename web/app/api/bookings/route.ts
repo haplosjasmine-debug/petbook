@@ -12,6 +12,7 @@ import {
 } from "@/lib/directus";
 import { notifyBookingCreated } from "@/lib/notifications";
 import { createCheckoutSession } from "@/lib/paymongo";
+import { isServiceAvailableAt } from "@/lib/service-availability";
 import { ensurePendingTransaction, markTransactionPaid } from "@/lib/payments";
 import type {
   Appointment,
@@ -68,6 +69,13 @@ export async function POST(request: Request) {
     }
 
     const endAt = addMinutes(startAt, Number(service.duration_min));
+
+    if (!isServiceAvailableAt(service, startAt, endAt, shop.timezone || appConfig.timezone)) {
+      return NextResponse.json(
+        { message: "That service is not available at the selected time." },
+        { status: 400 }
+      );
+    }
 
     if (staff) {
       const existing = await listItems<Appointment>(

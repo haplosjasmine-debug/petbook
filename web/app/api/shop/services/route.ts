@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { shopSession, unauthorized } from "@/lib/authz";
 import { createItem } from "@/lib/directus";
+import {
+  defaultServiceDays,
+  defaultServiceFrom,
+  defaultServiceTo,
+} from "@/lib/service-availability";
 import type { Service } from "@/lib/types";
 import { serviceSchema } from "@/lib/validators";
 
@@ -16,6 +21,10 @@ export async function POST(request: Request) {
       name: input.name,
       category: input.category,
       description: input.description || null,
+      images: input.images ?? [],
+      available_days: input.available_days ?? defaultServiceDays,
+      available_from: input.available_from ?? defaultServiceFrom,
+      available_to: input.available_to ?? defaultServiceTo,
       duration_min: input.duration_min,
       price: input.price,
       active: input.active ?? true,

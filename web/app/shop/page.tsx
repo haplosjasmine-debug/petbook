@@ -99,6 +99,10 @@ export default async function ShopDashboardPage() {
         <LiveRevenueStat initial={revenue} />
       </div>
 
+      <div className="mt-6">
+        <LiveRevenuePanel initial={revenue} />
+      </div>
+
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -183,8 +187,6 @@ export default async function ShopDashboardPage() {
               </p>
             </CardContent>
           </Card>
-
-          <LiveRevenuePanel initial={revenue} />
 
           <Button asChild variant="outline" size="sm" className="w-full">
             <Link href="/shop/reports">Open full reports</Link>
