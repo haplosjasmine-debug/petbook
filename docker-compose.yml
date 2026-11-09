@@ -1,0 +1,123 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-petbook}
+      POSTGRES_USER: ${POSTGRES_USER:-petbook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-petbook}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-petbook} -d ${POSTGRES_DB:-petbook}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  directus:
+    image: directus/directus:11.17.4
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${DIRECTUS_PORT:-8055}:8055"
+    environment:
+      KEY: ${DIRECTUS_KEY:-dev-directus-key}
+      SECRET: ${DIRECTUS_SECRET:-dev-directus-secret}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@petbook.io}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-PetBook123!}
+      DB_CLIENT: pg
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-petbook}
+      DB_USER: ${POSTGRES_USER:-petbook}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-petbook}
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:-http://localhost:8055}
+      HOST: 0.0.0.0
+      PORT: 8055
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: ${APP_URL:-http://localhost:3000}
+      RATE_LIMITER_ENABLED: "false"
+      TELEMETRY: "false"
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL: 7d
+      STORAGE_LOCATIONS: local
+      STORAGE_LOCAL_DRIVER: local
+      STORAGE_LOCAL_ROOT: /directus/uploads
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_extensions:/directus/extensions
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8055/server/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  web:
+    build:
+      context: ./web
+    restart: unless-stopped
+    depends_on:
+      directus:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_DIRECTUS_URL: ${DIRECTUS_PUBLIC_URL:-http://localhost:8055}
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@petbook.io}
+      DIRECTUS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-PetBook123!}
+      COMMISSION_RATE: ${COMMISSION_RATE:-10}
+      LOYALTY_POINTS_PER_HUNDRED: ${LOYALTY_POINTS_PER_HUNDRED:-2}
+      LOYALTY_POINT_VALUE: ${LOYALTY_POINT_VALUE:-0.5}
+      CRON_SECRET: ${CRON_SECRET:-dev-cron-secret}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
+      PAYMONGO_SECRET_KEY: ${PAYMONGO_SECRET_KEY:-}
+      PAYMONGO_WEBHOOK_SECRET: ${PAYMONGO_WEBHOOK_SECRET:-dev-paymongo-webhook-secret}
+      PAYMONGO_PAYMENT_METHODS: ${PAYMONGO_PAYMENT_METHODS:-gcash,maya,grab_pay,qrph,card}
+      SMS_PROVIDER: ${SMS_PROVIDER:-mock}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-mock}
+
+  setup:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace:ro
+    environment:
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@petbook.io}
+      DIRECTUS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-PetBook123!}
+    command: ["node", "directus/scripts/setup.mjs"]
+    depends_on:
+      directus:
+        condition: service_healthy
+    profiles: ["tools"]
+
+  seed:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace:ro
+    environment:
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@petbook.io}
+      DIRECTUS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-PetBook123!}
+    command: ["node", "directus/scripts/seed.mjs"]
+    depends_on:
+      directus:
+        condition: service_healthy
+    profiles: ["tools"]
+
+volumes:
+  postgres_data:
+  directus_uploads:
+  directus_extensions:

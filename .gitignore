@@ -16,7 +16,24 @@ cms/uploads/
 cms/*.log
 cms/snapshot.yaml
 
+# Next.js web app
+web/node_modules/
+web/.next/
+web/out/
+web/.env
+web/.env.*
+!web/.env.example
+
+# Docker / local environment
+.env
+.env.*
+!.env.example
+directus/.env
+
 # OS / editors
 .DS_Store
 Thumbs.db
 *.log
+
+# TypeScript build info
+*.tsbuildinfo
