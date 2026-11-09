@@ -1,129 +1,165 @@
 # PetBook
 
-Pet grooming and veterinary booking platform for the Philippines. A Laravel REST API powers bookings, reminders, loyalty points, medical records and the 10% platform commission. Directus provides the CMS/admin front-end over the same MySQL database.
+Pet grooming and veterinary booking platform for the Philippines. The current product is a Next.js 15 app backed by Directus 11 and PostgreSQL. It includes customer booking and pet records, shop operations, GPS shop discovery, PayMongo online payments (including platform commission), and a live admin revenue dashboard.
+
+The older Laravel code in `backend/` and the legacy MySQL Directus install in `cms/` are not used by the current app.
 
 ## Stack
 
-- **Backend:** Laravel 10, PHP 8.1, MySQL 8, Sanctum
-- **CMS:** Directus 11.17.4 on Node.js 20/22 (used for admin and role-scoped data entry)
-- **SMS:** Twilio (or the `log` driver in development)
-- **Payments:** PayMongo hosted checkout — GCash, Maya, GrabPay, QR Ph and Visa/Mastercard
+- **Web:** Next.js 15 App Router, React 19, TypeScript, Tailwind CSS
+- **CMS / API:** Directus 11 with PostgreSQL
+- **Maps:** OpenStreetMap tiles via Leaflet, browser GPS for near-me sorting
+- **Payments:** PayMongo hosted checkout for GCash, Maya, GrabPay, QR Ph and cards
+- **Containers:** Docker Compose for PostgreSQL, Directus, schema setup, seed and web
 
 ## Project layout
 
 ```
 petbook/
-  backend/   Laravel API, migrations, seeders, tests
-  cms/       Directus CMS, setup script and flow configuration
+  web/        Next.js application and API routes
+  directus/   Directus schema setup and demo seed scripts
+  backend/    Legacy Laravel API (not used)
+  cms/        Legacy Directus/MySQL install (not used)
+  docker-compose.yml
+  .env.example
 ```
 
-## Backend setup
+## Features
+
+### Customers
+
+- Register, sign in, manage profile and pets
+- Browse shops and services
+- Find nearby shops with a map and GPS distance sorting
+- Book appointments with slot availability
+- Pay online or at the shop
+- View appointments, QR check-in codes, loyalty points and reminders
+
+### Shop owners
+
+- Dashboard for today's visits and monthly revenue
+- Manage appointments, services, staff and shop profile
+- Capture a shop GPS pin for map discovery
+- View revenue, commission and net payout reports
+- Pay PetBook commission online through PayMongo
+
+### Platform admin
+
+- Custom revenue dashboard at `/admin`
+- Live graph polling every 10 seconds
+- Gross booking revenue, platform commission, pending settlement and online collections
+- Top shops by revenue and recent commission payments
+- Directus admin link for content and raw data management
+
+## Quick start with Docker
 
 ```powershell
-cd backend
-composer install
 copy .env.example .env
-php artisan key:generate
-# set DB_DATABASE / DB_USERNAME / DB_PASSWORD in .env
-php artisan migrate
-php artisan db:seed
-php artisan serve --host=127.0.0.1 --port=8000
+# edit secrets in .env
+docker compose up -d postgres directus
+docker compose run --rm setup
+docker compose run --rm seed
+docker compose up -d web
 ```
 
-Never run `php artisan migrate:fresh` against the shared database: it would drop the Directus tables. Use `php artisan migrate`.
+Open:
 
-Demo accounts created by the seeder (password `password`):
+- Web: <http://localhost:3000>
+- Directus admin: <http://localhost:8055/admin>
+
+### Demo accounts
+
+Password for all seeded accounts: `PetBook123!`
 
 | Role | Email |
 | --- | --- |
-| Platform admin | `admin@petbook.app` |
-| Business owner | `owner@petbook.app` |
-| Pet owner | `customer@petbook.app` |
+| Shop owner | `maria@petbook.io` |
+| Shop owner | `paolo@petbook.io` |
+| Shop owner | `ana@petbook.io` |
+| Customer | `jasmine@petbook.io` |
+| Customer | `miguel@petbook.io` |
 
-## Directus setup
+## Local development without Docker
 
-Directus 11 requires Node.js 20–22. A portable Node 22 runtime is used in development at `cms/.node22/` (gitignored).
+Start PostgreSQL and Directus first, or point the app at an existing Directus instance.
 
 ```powershell
-cd cms
+cd web
 npm install
+copy .env.example .env
 npm run setup
-npm start
+npm run seed
+npm run dev
 ```
 
-The setup script registers the Laravel tables as Directus collections, adds `business` / `app_role` / `app_user` to CMS users, creates the Pet Owner and Business Owner roles, applies scoped permissions, and installs the appointment → Laravel webhook flow.
+`npm run setup` and `npm run seed` read credentials from `.env`, `../.env` or `../directus/.env`. The setup script is safe to re-run: existing collections, fields, relations and roles are kept.
 
-Default CMS admin: `admin@petbook.io` / `PetbookAdmin123!`.
+### Environment
 
-## Payments (PayMongo)
-
-PayMongo is the default Philippine gateway. Create an account at <https://dashboard.paymongo.com>, then copy the keys into `backend/.env`:
+Copy `web/.env.example` to `web/.env` for local Next.js development:
 
 ```dotenv
-PAYMENT_PROVIDER=paymongo
-PAYMENT_CURRENCY=PHP
-PAYMONGO_SECRET_KEY=sk_test_...
-PAYMONGO_PUBLIC_KEY=pk_test_...
-PAYMONGO_WEBHOOK_SECRET=whsec_...
-PAYMONGO_BASE_URL=https://api.paymongo.com/v1
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DIRECTUS_URL=http://127.0.0.1:8055
+DIRECTUS_URL=http://127.0.0.1:8055
+DIRECTUS_ADMIN_EMAIL=admin@petbook.io
+DIRECTUS_ADMIN_PASSWORD=PetBook123!
+
+COMMISSION_RATE=10
+CRON_SECRET=dev-cron-secret
+PAYMENT_PROVIDER=mock
+PAYMONGO_SECRET_KEY=
+PAYMONGO_WEBHOOK_SECRET=dev-paymongo-webhook-secret
 PAYMONGO_PAYMENT_METHODS=gcash,maya,grab_pay,qrph,card
-PAYMENT_SUCCESS_URL=https://your-cms.example.com/admin/content/transactions?payment=success
-PAYMENT_CANCEL_URL=https://your-cms.example.com/admin/content/transactions?payment=cancelled
 ```
 
-Register the webhook in the PayMongo dashboard:
+Use `PAYMENT_PROVIDER=paymongo` and a real secret key to enable hosted checkout. With `PAYMENT_PROVIDER=mock`, shop owners can use the demo commission payment button for local testing.
 
-- URL: `https://your-api.example.com/api/webhooks/paymongo`
-- Events: `checkout_session.payment.paid`, `payment.paid`, `checkout_session.payment.failed`
+## Maps and GPS
 
-### Payment API
+Shop coordinates live on `shops.latitude` and `shops.longitude` (decimal, 10, 7). Shop owners can type coordinates or press **Use my location** in shop settings. On `/shops`, customers can press **Use my location** to sort shops by distance and center the OpenStreetMap view on their position. Shop detail pages include a map pin and Google Maps directions link. No map API key is required.
 
-| Method | Endpoint | Who | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/payments/checkout` | Pet owner | Create a PayMongo checkout for an appointment, package purchase or transaction |
-| `GET` | `/api/payments` | Any signed-in user | List payments visible to the user |
-| `GET` | `/api/payments/{transaction}` | Any signed-in user | Payment/commission details |
-| `POST` | `/api/payments/{transaction}/cash-paid` | Business owner/staff, admin | Record an offline cash payment |
-| `POST` | `/api/webhooks/paymongo` | PayMongo | Signature-verified payment status webhook |
+## Payments and commission
 
-Example checkout request:
+Customers can pay for appointments online through PayMongo or at the shop. Completed appointments create a transaction with a platform commission, defaulting to 10%.
 
-```json
-{
-  "appointment_id": 1,
-  "payment_methods": ["gcash", "maya", "qrph"]
-}
-```
+Shop owners settle commission separately from customer payments:
 
-The response contains `checkout_url`; redirect the customer there. When PayMongo confirms payment, the webhook sets `payment_status=paid`, records the payment method/reference and timestamp on the transaction.
+1. Open `/shop/commissions`.
+2. Review the outstanding commission balance.
+3. Pay online with PayMongo.
+4. When PayMongo sends the signed webhook, the payment is marked paid and all pending transactions for that shop are marked settled.
 
-Cash payments remain supported for walk-ins and are recorded through the `cash-paid` endpoint.
+Commission checkout records are stored in `commission_payments`. The admin dashboard shows pending commission, settled commission, online commission collections, and recent commission payments.
 
-## Scheduling
+Register these PayMongo webhook events:
+
+- `checkout_session.payment.paid`
+- `checkout_session.payment.failed`
+
+Webhook URL: `https://your-domain.example/api/payments/webhook`
+
+## Scheduled reminders
 
 ```powershell
-php artisan schedule:run
+curl -X POST https://your-domain.example/api/cron/reminders `
+  -H "X-Cron-Secret: $env:CRON_SECRET"
 ```
 
-- `petbook:send-reminders` — sends due SMS reminders every five minutes
-- `petbook:reconcile-appointments` — hourly completion/commission reconciliation
-
-The scheduler endpoint `POST /api/cron/reminders/process` is protected by the `X-Cron-Secret` header (`CRON_SECRET`).
-
-## Tests
-
-Tests use a separate MySQL database (`petbook_test`) configured in `phpunit.xml`:
+## Commands
 
 ```powershell
-cd backend
-php artisan test
+cd web
+npm run typecheck
+npm run build
+npm run setup
+npm run seed
 ```
-
-Coverage includes registration/login, appointment completion (commission, loyalty, medical record, follow-up reminder), appointment permissions, PayMongo checkout, webhook signature validation, and cash payment recording.
 
 ## Business rules
 
-- Platform commission defaults to **10%** of each completed appointment or package purchase.
-- Customers earn **1 loyalty point per PHP 1** spent on a completed appointment.
-- Upcoming reminders are scheduled 24 hours before a visit; follow-ups are scheduled 3 days after completion.
-- The platform admin settles commissions with `PATCH /api/commissions/{transaction}/mark-paid`.
+- Platform commission defaults to **10%** of each completed appointment.
+- Customers earn loyalty points based on `LOYALTY_POINTS_PER_HUNDRED`.
+- Upcoming reminders are scheduled before a visit; follow-ups are scheduled after completion.
+- Shop owners can settle commission per shop through PayMongo checkout.
+- Admin revenue metrics are calculated from paid transactions and commission payments.
