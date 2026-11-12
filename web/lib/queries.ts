@@ -39,6 +39,13 @@ export async function shopAppointments(shopId: number, extra = "") {
   );
 }
 
+export async function staffAppointments(staffId: number, extra = "") {
+  return listItems<Appointment>(
+    "appointments",
+    `filter[staff][_eq]=${staffId}${extra}&sort=-start_at&limit=200`
+  );
+}
+
 export async function customerPets(customerId: number) {
   return listItems<Pet>("pets", `filter[customer][_eq]=${customerId}&sort=name&limit=100`);
 }

@@ -3,18 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Loader2, PawPrint } from "lucide-react";
+import { Loader2, PawPrint } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 
-type Role = "customer" | "shop_owner";
-
-export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role }) {
-  const [role, setRole] = useState<Role>(initialRole);
+export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -28,27 +23,17 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
     }
 
     setLoading(true);
-    const payload = {
-      role,
-      first_name: form.get("first_name"),
-      last_name: form.get("last_name"),
-      email: form.get("email"),
-      phone: form.get("phone"),
-      password: form.get("password"),
-      ...(role === "shop_owner"
-        ? {
-            shop_name: form.get("shop_name"),
-            city: form.get("city"),
-            address: form.get("address"),
-            description: form.get("description"),
-          }
-        : {}),
-    };
-
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        role: "pet_owner",
+        first_name: form.get("first_name"),
+        last_name: form.get("last_name"),
+        email: form.get("email"),
+        phone: form.get("phone"),
+        password: form.get("password"),
+      }),
     });
     const data = (await response.json().catch(() => ({}))) as { message?: string };
 
@@ -59,34 +44,22 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
     }
 
     toast.success("Account created.");
-    router.push(role === "shop_owner" ? "/shop" : "/dashboard");
+    router.push("/dashboard");
     router.refresh();
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { value: "customer" as const, label: "I'm a pet owner", icon: PawPrint },
-          { value: "shop_owner" as const, label: "I run a shop", icon: Building2 },
-        ].map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setRole(option.value)}
-            className={cn(
-              "flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition",
-              role === option.value
-                ? "border-brand-600 bg-brand-50"
-                : "border-border bg-white hover:border-brand-300"
-            )}
-          >
-            <option.icon
-              className={cn("h-5 w-5", role === option.value ? "text-brand-700" : "text-muted-foreground")}
-            />
-            <span className="text-sm font-bold">{option.label}</span>
-          </button>
-        ))}
+      <div className="flex items-center gap-3 rounded-2xl bg-brand-50 p-4 text-brand-900">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-brand-700">
+          <PawPrint className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-sm font-black">Pet owner account</p>
+          <p className="text-xs text-brand-800/70">
+            Book care, track records, and collect loyalty points.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -110,37 +83,6 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
           <Input id="phone" name="phone" placeholder="+63 917 000 0000" />
         </div>
       </div>
-
-      {role === "shop_owner" ? (
-        <div className="space-y-4 rounded-2xl border bg-secondary/50 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            Shop details
-          </p>
-          <div className="space-y-2">
-            <Label htmlFor="shop_name">Shop name</Label>
-            <Input id="shop_name" name="shop_name" placeholder="Happy Paws Grooming" required={role === "shop_owner"} />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" placeholder="Quezon City" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" name="address" placeholder="123 Main St." />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Short description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              rows={3}
-              placeholder="Tell pet owners what makes your shop special."
-            />
-          </div>
-        </div>
-      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -170,8 +112,16 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
 
       <Button type="submit" className="w-full" size="lg" disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {loading ? "Creating account…" : "Create account"}
+        {loading ? "Creating account…" : "Create pet owner account"}
       </Button>
+
+      <p className="rounded-xl bg-secondary p-3 text-center text-xs text-muted-foreground">
+        Run a pet business?{" "}
+        <Link href="/business/apply" className="font-semibold text-brand-700 hover:underline">
+          Apply for a business owner account
+        </Link>
+        .
+      </p>
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}

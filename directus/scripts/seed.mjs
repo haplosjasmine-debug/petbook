@@ -170,11 +170,9 @@ async function ensureShop(owner, body) {
 }
 
 async function ensureStaff(shop, body) {
-  return ensure(
-    "staff",
-    { shop: { _eq: shop.id }, name: { _eq: body.name } },
-    { ...body, shop: shop.id }
-  );
+  const existing = await first("staff", { shop: { _eq: shop.id }, name: { _eq: body.name } });
+  if (existing) return update("staff", existing.id, { ...body, shop: shop.id });
+  return create("staff", { ...body, shop: shop.id });
 }
 
 async function ensureService(shop, body) {
@@ -294,6 +292,7 @@ async function main() {
 
   const customerRole = await roleId("Customer");
   const shopRole = await roleId("Shop Owner");
+  const staffRole = await roleId("Staff");
 
   const jasmineUser = await ensureUser({
     email: "jasmine@petbook.io",
@@ -331,6 +330,12 @@ async function main() {
     first_name: "Ana",
     last_name: "Cruz",
     role: shopRole,
+  });
+  const lizaUser = await ensureUser({
+    email: "liza@pawsandpolish.com",
+    first_name: "Liza",
+    last_name: "Ramos",
+    role: staffRole,
   });
 
   const jasmine = await ensureCustomer(jasmineUser, "0917 555 0101");
@@ -404,6 +409,7 @@ async function main() {
     phone: "0917 555 0111",
     bio: "Cat grooming specialist and Fear Free certified.",
     active: true,
+    user: lizaUser.id,
   });
   const paoloStaff = await ensureStaff(vetcare, {
     name: "Dr. Paolo Reyes",
@@ -752,7 +758,8 @@ async function main() {
   console.log("Customer: miguel@petbook.io  / PetBook123!");
   console.log("Shop:     maria@petbook.io    / PetBook123!  (Paws & Polish)");
   console.log("Shop:     paolo@petbook.io    / PetBook123!  (VetCare Manila)");
-  console.log("Shop:     ana@petbook.io      / PetBook123!  (Happy Tails)\n");
+  console.log("Shop:     ana@petbook.io      / PetBook123!  (Happy Tails)");
+  console.log("Staff:    liza@pawsandpolish.com / PetBook123! (Paws & Polish)\n");
 }
 
 main().catch((error) => {

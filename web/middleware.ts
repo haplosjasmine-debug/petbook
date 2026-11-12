@@ -4,7 +4,7 @@ const ACCESS_COOKIE = "pb_access";
 const REFRESH_COOKIE = "pb_refresh";
 const EXPIRES_COOKIE = "pb_expires";
 
-const protectedPrefixes = ["/dashboard", "/shop", "/admin"];
+const protectedPrefixes = ["/dashboard", "/shop", "/staff", "/admin"];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -73,5 +73,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/shop/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/shop/:path*", "/staff/:path*", "/admin/:path*"],
 };

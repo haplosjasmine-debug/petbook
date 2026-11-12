@@ -26,17 +26,26 @@ function relatedId(value: number | { id: number } | null | undefined) {
   return typeof value === "object" ? value.id : value;
 }
 
-function notificationHref(portal: "customer" | "shop" | "admin", notification: AppNotification) {
+function notificationHref(
+  portal: "customer" | "shop" | "staff" | "admin",
+  notification: AppNotification
+) {
   const appointmentId = relatedId(notification.appointment);
   if (!appointmentId) return null;
   return portal === "customer"
     ? `/dashboard/appointments/${appointmentId}`
     : portal === "shop"
       ? "/shop/appointments?status=all"
-      : null;
+      : portal === "staff"
+        ? "/staff/appointments"
+        : null;
 }
 
-export function NotificationCenter({ portal }: { portal: "customer" | "shop" | "admin" }) {
+export function NotificationCenter({
+  portal,
+}: {
+  portal: "customer" | "shop" | "staff" | "admin";
+}) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feed, setFeed] = useState<Feed>({ notifications: [], reminders: [] });

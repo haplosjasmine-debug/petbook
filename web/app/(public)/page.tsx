@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,41 +11,30 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
-import { RatingStars } from "@/components/rating-stars";
-import { ReviewCard } from "@/components/review-card";
 import { ShopGalleryGrid } from "@/components/shop-gallery-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShopCard } from "@/components/shop-card";
 import {
-  getActiveReviews,
   getAnnouncements,
   getFeaturedGallery,
   getFeaturedShops,
   getHomeContent,
-  getReviewSummaries,
   getServicesForShops,
 } from "@/lib/public-data";
-import { summarizeReviews } from "@/lib/reviews";
 import { formatDate } from "@/lib/utils";
 
 export default async function HomePage() {
-  const [content, shops, gallery, announcements, reviews] = await Promise.all([
+  const [content, shops, gallery, announcements] = await Promise.all([
     getHomeContent(),
     getFeaturedShops(3),
     getFeaturedGallery(6),
     getAnnouncements(3),
-    getActiveReviews(60),
   ]);
 
   const shopIds = shops.map((shop) => shop.id);
-  const [shopServices, reviewSummaries] = await Promise.all([
-    getServicesForShops(shopIds),
-    getReviewSummaries(shopIds),
-  ]);
-  const reviewSummary = summarizeReviews(reviews);
-  const featuredReviews = reviews.slice(0, 4);
+  const shopServices = await getServicesForShops(shopIds);
 
   return (
     <>
@@ -286,8 +275,6 @@ export default async function HomePage() {
                   shop={shop}
                   serviceCount={related.length}
                   fromPrice={fromPrice}
-                  ratingAverage={reviewSummaries.get(shop.id)?.average}
-                  reviewCount={reviewSummaries.get(shop.id)?.count}
                 />
               );
             })}
@@ -302,7 +289,7 @@ export default async function HomePage() {
                 business to be one of the first.
               </p>
               <Button asChild className="mt-2">
-                <Link href="/register?role=shop_owner">List your shop</Link>
+                <Link href="/business/apply">Apply as a business</Link>
               </Button>
             </CardContent>
           </Card>
@@ -379,74 +366,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-brand-950 py-16 text-white sm:py-20">
-        <div className="hero-grid absolute inset-0 opacity-35" />
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
-        <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-coral-500/20 blur-3xl" />
-
-        <div className="page-shell relative grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-brand-100">
-              <Star className="h-3.5 w-3.5 fill-coral-300 text-coral-300" /> Loved by pet parents
-            </span>
-            <h2 className="mt-5 max-w-xl text-balance text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-              The kind of reviews that wag back.
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-brand-100/80 sm:text-base">
-              Real ratings and comments from customers after real visits. Read the stories, compare
-              services, and book with a little more confidence.
-            </p>
-
-            {reviewSummary.count ? (
-              <div className="mt-7 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-                <p className="text-4xl font-black leading-none">
-                  {reviewSummary.average.toFixed(1)}
-                </p>
-                <div>
-                  <RatingStars
-                    rating={reviewSummary.average}
-                    starClassName="h-4 w-4 text-amber-300"
-                  />
-                  <p className="mt-1 text-xs font-semibold text-brand-100/70">
-                    {reviewSummary.count} customer review
-                    {reviewSummary.count === 1 ? "" : "s"} and counting
-                  </p>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild size="lg" variant="accent">
-                <Link href="/shops">
-                  Find a trusted shop <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/30 bg-white/5 text-white hover:bg-white/15"
-              >
-                <Link href="/services">Compare services</Link>
-              </Button>
-            </div>
-          </div>
-
-          {featuredReviews.length ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {featuredReviews.map((review) => (
-                <ReviewCard key={review.id} review={review} showShop tone="dark" />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-8 text-sm text-brand-100/70 backdrop-blur">
-              This wall of love is waiting for its first review. Book a visit with a partner shop
-              and share how it went.
-            </div>
-          )}
-        </div>
-      </section>
-
       {announcements.length ? (
         <section className="page-shell pb-16">
           <div className="flex items-end justify-between gap-4">
@@ -489,7 +408,7 @@ export default async function HomePage() {
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild size="lg" variant="accent">
-                  <Link href="/register?role=shop_owner">List your shop</Link>
+                  <Link href="/business/apply">Apply as a business</Link>
                 </Button>
                 <Button
                   asChild

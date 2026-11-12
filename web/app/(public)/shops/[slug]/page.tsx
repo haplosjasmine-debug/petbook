@@ -266,7 +266,7 @@ export default async function ShopDetailPage({
                   shopSlug={shop.slug}
                   services={services}
                   signedIn={Boolean(session)}
-                  isCustomer={session?.role === "Customer"}
+                  isCustomer={session?.appRole === "pet_owner"}
                 />
               </div>
 

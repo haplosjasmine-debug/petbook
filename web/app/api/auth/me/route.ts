@@ -16,7 +16,9 @@ export async function GET() {
       role: session.user.role,
     },
     role: session.role,
+    appRole: session.appRole,
     customer: session.customer,
     shop: session.shop,
+    staff: session.staff,
   });
 }

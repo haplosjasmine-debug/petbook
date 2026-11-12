@@ -6,7 +6,7 @@ export const loginSchema = z.object({
 });
 
 export const customerRegisterSchema = z.object({
-  role: z.literal("customer"),
+  role: z.enum(["customer", "pet_owner"]).default("pet_owner"),
   first_name: z.string().min(1).max(100),
   last_name: z.string().min(1).max(100),
   email: z.string().email().max(150),
@@ -14,23 +14,22 @@ export const customerRegisterSchema = z.object({
   password: z.string().min(8).max(72),
 });
 
-export const shopRegisterSchema = z.object({
-  role: z.literal("shop_owner"),
-  first_name: z.string().min(1).max(100),
-  last_name: z.string().min(1).max(100),
-  email: z.string().email().max(150),
-  phone: z.string().max(32).optional().or(z.literal("")),
-  password: z.string().min(8).max(72),
-  shop_name: z.string().min(2).max(150),
-  city: z.string().max(120).optional().or(z.literal("")),
-  address: z.string().max(255).optional().or(z.literal("")),
-  description: z.string().max(2000).optional().or(z.literal("")),
+export const registerSchema = customerRegisterSchema;
+
+export const businessApplicationSchema = z.object({
+  business_name: z.string().trim().min(2, "Enter your business name.").max(150),
+  contact_name: z.string().trim().min(2, "Enter your full name.").max(150),
+  email: z.string().trim().email("Enter a valid email address.").max(150),
+  phone: z.string().trim().max(32).optional().or(z.literal("")),
+  city: z.string().trim().max(120).optional().or(z.literal("")),
+  address: z.string().trim().max(255).optional().or(z.literal("")),
+  message: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
-export const registerSchema = z.discriminatedUnion("role", [
-  customerRegisterSchema,
-  shopRegisterSchema,
-]);
+export const businessApplicationDecisionSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  decision_note: z.string().trim().max(2000).optional().or(z.literal("")),
+});
 
 export const petSchema = z.object({
   name: z.string().min(1).max(100),
@@ -97,6 +96,7 @@ export const staffSchema = z.object({
   phone: z.string().max(32).optional().or(z.literal("")),
   bio: z.string().max(2000).optional().or(z.literal("")),
   active: z.boolean().optional().default(true),
+  password: z.string().min(8, "Use at least 8 characters.").max(72).optional().or(z.literal("")),
 });
 
 export const profileSchema = z.object({

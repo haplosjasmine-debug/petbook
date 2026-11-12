@@ -158,7 +158,7 @@ export default async function ShopsPage({
                 <Link href="/shops">Clear search</Link>
               </Button>
               <Button asChild>
-                <Link href="/register?role=shop_owner">List a shop</Link>
+                <Link href="/business/apply">Apply as a business</Link>
               </Button>
             </div>
           </CardContent>

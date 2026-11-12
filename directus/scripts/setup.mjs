@@ -1,7 +1,7 @@
 /**
  * PetBook Directus setup.
  *
- * Creates the PostgreSQL-backed Directus schema, relations, roles and access
+ * Creates the Directus schema, relations, roles and access
  * policies used by the Next.js app. Safe to re-run: existing collections,
  * fields, relations and roles are left in place.
  *
@@ -415,6 +415,15 @@ const collections = [
     },
   ],
   [
+    "business_applications",
+    {
+      icon: "assignment",
+      note: "Business owner applications reviewed by platform admins.",
+      display_template: "{{business_name}}",
+      sort_field: "-date_created",
+    },
+  ],
+  [
     "pets",
     {
       icon: "pets",
@@ -582,6 +591,27 @@ const fieldDefinitions = {
     ["phone", stringField({ sort: 4, width: "half" })],
     ["bio", textField({ sort: 5 })],
     ["active", booleanField({ sort: 6, width: "half" }, { default_value: true })],
+  ],
+  business_applications: [
+    ["business_name", stringField({ sort: 1 }, { is_nullable: false })],
+    ["contact_name", stringField({ sort: 2 }, { is_nullable: false })],
+    ["email", stringField({ sort: 3, width: "half" }, { is_nullable: false })],
+    ["phone", stringField({ sort: 4, width: "half" })],
+    ["city", stringField({ sort: 5, width: "half" })],
+    ["address", stringField({ sort: 6 })],
+    ["message", textField({ sort: 7, note: "Services offered and other business details." })],
+    [
+      "status",
+      selectField(["pending", "approved", "rejected"], {
+        sort: 8,
+        width: "half",
+        default_value: "pending",
+      }),
+    ],
+    ["decision_note", textField({ sort: 9 })],
+    ["reviewed_by", userRelationField("Super admin who reviewed the application.")],
+    ["reviewed_at", datetimeField({ sort: 10, width: "half" })],
+    ["date_created", createdAtField()],
   ],
   pets: [
     ["customer", relationField("customers", { template: "{{first_name}} {{last_name}}", note: "Owner." })],
@@ -859,6 +889,7 @@ const relations = [
   ["shops", "cover_image", "directus_files"],
   ["staff", "shop", "shops"],
   ["staff", "user", "directus_users"],
+  ["business_applications", "reviewed_by", "directus_users"],
   ["pets", "customer", "customers"],
   ["pets", "photo", "directus_files"],
   ["services", "shop", "shops"],
@@ -975,11 +1006,14 @@ async function ensurePermission(policy, collection, action, permissions = null, 
 async function setupPolicies() {
   const customerRole = await ensureRole("Customer", "person");
   const shopRole = await ensureRole("Shop Owner", "storefront");
+  const staffRole = await ensureRole("Staff", "badge");
   const customerPolicy = await ensurePolicy("Customer");
   const shopPolicy = await ensurePolicy("Shop Owner");
+  const staffPolicy = await ensurePolicy("Staff");
 
   await ensureAccess(customerRole, customerPolicy);
   await ensureAccess(shopRole, shopPolicy);
+  await ensureAccess(staffRole, staffPolicy);
 
   const currentUser = { id: { _eq: "$CURRENT_USER" } };
   await ensurePermission(customerPolicy, "directus_users", "read", currentUser, {
@@ -1048,6 +1082,22 @@ async function setupPolicies() {
     await ensurePermission(shopPolicy, collection, "read");
   }
   await ensurePermission(shopPolicy, "commission_payments", "read", scoped);
+
+  await ensurePermission(staffPolicy, "directus_users", "read", currentUser, {
+    fields: ["id", "first_name", "last_name", "email"],
+  });
+  await ensurePermission(staffPolicy, "staff", "read", {
+    user: { _eq: "$CURRENT_USER" },
+  });
+  await ensurePermission(staffPolicy, "appointments", "read", {
+    staff: { user: { _eq: "$CURRENT_USER" } },
+  });
+  for (const collection of ["shops", "services", "shop_gallery", "reviews"]) {
+    await ensurePermission(staffPolicy, collection, "read");
+  }
+  for (const collection of ["customers", "pets"]) {
+    await ensurePermission(staffPolicy, collection, "read");
+  }
 }
 
 async function main() {

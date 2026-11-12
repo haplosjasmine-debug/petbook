@@ -4,19 +4,25 @@ import type { Session } from "@/lib/types";
 
 export async function customerSession() {
   const session = await getSession();
-  if (!session || session.role !== "Customer" || !session.customer) return null;
+  if (!session || session.appRole !== "pet_owner" || !session.customer) return null;
   return session as Session & { customer: NonNullable<Session["customer"]> };
 }
 
 export async function shopSession() {
   const session = await getSession();
-  if (!session || session.role !== "Shop Owner" || !session.shop) return null;
+  if (!session || session.appRole !== "business_owner" || !session.shop) return null;
   return session as Session & { shop: NonNullable<Session["shop"]> };
+}
+
+export async function staffSession() {
+  const session = await getSession();
+  if (!session || session.appRole !== "staff" || !session.staff) return null;
+  return session as Session & { staff: NonNullable<Session["staff"]> };
 }
 
 export async function adminSession() {
   const session = await getSession();
-  if (!session || session.role !== "Administrator") return null;
+  if (!session || session.appRole !== "super_admin") return null;
   return session;
 }
 

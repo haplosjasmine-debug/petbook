@@ -11,7 +11,8 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : undefined;
+  const next =
+    params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : undefined;
 
   return (
     <section className="page-shell grid gap-10 py-14 lg:grid-cols-2 lg:items-center">
@@ -53,9 +54,9 @@ export default async function LoginPage({
             <LoginForm next={next} />
           </div>
           <div className="mt-6 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
-            Are you a shop owner?{" "}
-            <Link href="/register?role=shop_owner" className="font-semibold text-brand-700 hover:underline">
-              Create a business account
+            Run a pet business?{" "}
+            <Link href="/business/apply" className="font-semibold text-brand-700 hover:underline">
+              Apply for a business owner account
             </Link>
           </div>
         </CardContent>

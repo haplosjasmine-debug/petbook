@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    if (session.role === "Customer" && session.customer) {
+    if (session.appRole === "pet_owner" && session.customer) {
       const [notifications, appointments] = await Promise.all([
         listItems<AppNotification>(
           "notifications",
@@ -29,7 +29,10 @@ export async function GET() {
       });
     }
 
-    if (session.role === "Shop Owner" && session.shop) {
+    if (
+      (session.appRole === "business_owner" || session.appRole === "staff") &&
+      session.shop
+    ) {
       const notifications = await listItems<AppNotification>(
         "notifications",
         `filter[shop][_eq]=${session.shop.id}&filter[channel][_eq]=system&sort=-date_created&limit=20`

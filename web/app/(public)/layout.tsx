@@ -1,5 +1,6 @@
 import { SiteHeader, type HeaderSession } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { appRoleHome, appRoleLabel } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -12,13 +13,8 @@ export default async function PublicLayout({ children }: { children: React.React
       session.user.email;
     headerSession = {
       name,
-      role: session.role,
-      dashboardHref:
-        session.role === "Shop Owner"
-          ? "/shop"
-          : session.role === "Administrator"
-            ? "/admin"
-            : "/dashboard",
+      role: appRoleLabel(session.appRole),
+      dashboardHref: appRoleHome(session.appRole),
     };
   }
 

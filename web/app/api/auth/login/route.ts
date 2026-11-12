@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { DirectusError, fetchCurrentUser, listItems, loginDirectus } from "@/lib/directus";
-import { setSessionCookies } from "@/lib/session";
+import { DirectusError, fetchCurrentUser, loginDirectus } from "@/lib/directus";
+import { appRoleHome } from "@/lib/roles";
+import { buildSession, setSessionCookies } from "@/lib/session";
 import { loginSchema } from "@/lib/validators";
-import type { Customer, Shop } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -10,37 +10,31 @@ export async function POST(request: Request) {
     const input = loginSchema.parse(body);
     const tokens = await loginDirectus(input.email, input.password);
     const user = await fetchCurrentUser(tokens.access_token);
-    const role = user.role && typeof user.role === "object" ? user.role.name : "";
+    const session = await buildSession(user, tokens.access_token);
 
-    let customer: Customer | null = null;
-    let shop: Shop | null = null;
-
-    if (role === "Customer") {
-      const rows = await listItems<Customer>(
-        "customers",
-        `filter[user][_eq]=${user.id}&limit=1`
+    if (!session) {
+      throw new DirectusError(
+        "This account does not have a PetBook role. Contact the platform administrator.",
+        403
       );
-      customer = rows[0] ?? null;
-    }
-
-    if (role === "Shop Owner") {
-      const rows = await listItems<Shop>("shops", `filter[owner][_eq]=${user.id}&limit=1`);
-      shop = rows[0] ?? null;
     }
 
     await setSessionCookies(tokens);
 
     return NextResponse.json({
-      role,
+      role: session.role,
+      appRole: session.appRole,
+      home: appRoleHome(session.appRole),
       user: {
         ...user,
         role: {
           id: user.role && typeof user.role === "object" ? user.role.id : "",
-          name: role,
+          name: session.role,
         },
       },
-      customer,
-      shop,
+      customer: session.customer,
+      shop: session.shop,
+      staff: session.staff,
     });
   } catch (error) {
     if (error instanceof DirectusError) {

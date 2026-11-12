@@ -38,6 +38,7 @@ export function StaffFormDialog({
     phone: member?.phone ?? "",
     bio: member?.bio ?? "",
     active: member?.active ?? true,
+    password: "",
   });
   const router = useRouter();
 
@@ -50,6 +51,7 @@ export function StaffFormDialog({
         phone: member?.phone ?? "",
         bio: member?.bio ?? "",
         active: member?.active ?? true,
+        password: "",
       });
     }
   }, [open, member]);
@@ -133,6 +135,23 @@ export function StaffFormDialog({
                 onChange={(event) => setForm({ ...form, phone: event.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="staff-password">
+              {member?.user ? "Reset login password" : "Staff login password"}
+            </Label>
+            <Input
+              id="staff-password"
+              type="password"
+              minLength={8}
+              value={form.password}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
+              placeholder={member?.user ? "Leave blank to keep current" : "Optional, at least 8 characters"}
+            />
+            <p className="text-xs text-muted-foreground">
+              Add an email and password to create a Staff workspace login for this person.
+            </p>
           </div>
 
           <div className="space-y-2">

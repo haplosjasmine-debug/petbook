@@ -66,7 +66,7 @@ export default function AboutPage() {
                 variant="outline"
                 className="border-white/30 bg-white/5 text-white hover:bg-white/15"
               >
-                <Link href="/register?role=shop_owner">Partner with us</Link>
+                <Link href="/business/apply">Partner with us</Link>
               </Button>
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function AboutPage() {
               </p>
             </div>
             <Button asChild variant="accent" className="mt-8 w-full">
-              <Link href="/register?role=shop_owner">List your shop</Link>
+              <Link href="/business/apply">Apply as a business</Link>
             </Button>
           </div>
         </div>

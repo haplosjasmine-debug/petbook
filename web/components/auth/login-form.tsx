@@ -30,6 +30,7 @@ export function LoginForm({ next }: { next?: string }) {
     const data = (await response.json().catch(() => ({}))) as {
       message?: string;
       role?: string;
+      home?: string;
     };
 
     if (!response.ok) {
@@ -39,14 +40,7 @@ export function LoginForm({ next }: { next?: string }) {
     }
 
     toast.success("Welcome back.");
-    const destination =
-      next ||
-      (data.role === "Shop Owner"
-        ? "/shop"
-        : data.role === "Administrator"
-          ? "/admin"
-          : "/dashboard");
-    router.push(destination);
+    router.push(next || data.home || "/dashboard");
     router.refresh();
   }
 

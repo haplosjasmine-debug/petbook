@@ -14,7 +14,7 @@ const columns = [
   {
     title: "For pet owners",
     links: [
-      { href: "/register?role=customer", label: "Create an account" },
+      { href: "/register", label: "Create an account" },
       { href: "/dashboard", label: "My bookings" },
       { href: "/dashboard/pets", label: "Pet records" },
       { href: "/dashboard/loyalty", label: "Loyalty points" },
@@ -23,7 +23,7 @@ const columns = [
   {
     title: "For businesses",
     links: [
-      { href: "/register?role=shop_owner", label: "List your shop" },
+      { href: "/business/apply", label: "Apply as a business" },
       { href: "/shop", label: "Business dashboard" },
       { href: "/about", label: "Partner benefits" },
       { href: "/contact", label: "Partner with us" },

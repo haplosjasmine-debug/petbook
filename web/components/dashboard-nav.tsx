@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  ClipboardList,
   CreditCard,
   Images,
   LayoutDashboard,
@@ -34,10 +35,21 @@ const items = {
     { href: "/shop/reports", label: "Reports", icon: LineChart },
     { href: "/shop/settings", label: "Settings", icon: Settings },
   ],
-  admin: [{ href: "/admin", label: "Overview", icon: LayoutDashboard }],
+  staff: [
+    { href: "/staff", label: "Overview", icon: LayoutDashboard },
+    { href: "/staff/appointments", label: "My schedule", icon: CalendarDays },
+  ],
+  admin: [
+    { href: "/admin", label: "Overview", icon: LayoutDashboard },
+    { href: "/admin/applications", label: "Applications", icon: ClipboardList },
+  ],
 } as const;
 
-export function DashboardNav({ portal }: { portal: "customer" | "shop" | "admin" }) {
+export function DashboardNav({
+  portal,
+}: {
+  portal: "customer" | "shop" | "staff" | "admin";
+}) {
   const pathname = usePathname();
   const nav = items[portal];
 

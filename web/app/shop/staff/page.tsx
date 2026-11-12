@@ -41,6 +41,9 @@ export default async function ShopStaffPage() {
                       <Badge variant={member.active ? "success" : "secondary"}>
                         {member.active ? "Active" : "Inactive"}
                       </Badge>
+                      <Badge variant={member.user ? "info" : "outline"}>
+                        {member.user ? "Login enabled" : "No login"}
+                      </Badge>
                     </div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
                       {titleCase(member.role)}

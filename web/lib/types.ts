@@ -1,4 +1,6 @@
-export type RoleName = "Administrator" | "Shop Owner" | "Customer" | string;
+import type { AppRole } from "@/lib/roles";
+
+export type RoleName = string;
 
 export interface DirectusRole {
   id: string;
@@ -55,6 +57,22 @@ export interface Staff {
   phone: string | null;
   bio: string | null;
   active: boolean;
+}
+
+export interface BusinessApplication {
+  id: number;
+  business_name: string;
+  contact_name: string;
+  email: string;
+  phone: string | null;
+  city: string | null;
+  address: string | null;
+  message: string | null;
+  status: "pending" | "approved" | "rejected" | string;
+  decision_note: string | null;
+  reviewed_by: string | DirectusUser | null;
+  reviewed_at: string | null;
+  date_created?: string;
 }
 
 export interface Pet {
@@ -257,8 +275,10 @@ export interface AppNotification {
 export interface Session {
   user: DirectusUser;
   role: RoleName;
+  appRole: AppRole;
   customer: Customer | null;
   shop: Shop | null;
+  staff: Staff | null;
   accessToken: string;
 }
 
