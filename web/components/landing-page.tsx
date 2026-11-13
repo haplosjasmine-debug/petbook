@@ -133,7 +133,7 @@ const faqs = [
 export function LandingPage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-brand-950 text-white">
+      <section className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-brand-950 text-white">
         <div className="absolute inset-0">
           <Image
             src="/images/home/vet-collage-mosaic.jpg"
@@ -151,189 +151,214 @@ export function LandingPage() {
         <div className="absolute -left-32 top-10 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div className="absolute -right-20 bottom-0 h-[28rem] w-[28rem] rounded-full bg-emerald-500/15 blur-3xl" />
 
-        <div className="page-shell relative grid gap-14 py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-24">
+        <div className="page-shell relative grid flex-1 gap-10 py-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-14 lg:py-8">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-brand-100 backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-coral-300" />
-              The pet care operating system
-            </div>
+            <div className="relative overflow-hidden rounded-[3rem] border border-white/40 bg-gray-200/55 p-5 text-black shadow-[0_32px_90px_-30px_rgba(0,0,0,0.9)] backdrop-blur-3xl sm:p-7">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/35 blur-2xl" />
+              <div className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-slate-300/30 blur-2xl" />
 
-            <h1 className="mt-6 text-balance text-4xl font-black leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
-              Modern Pet Care Management, All in One Place
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-brand-100/85 sm:text-lg">
-              PetBook helps pet grooming shops and veterinary clinics manage appointments,
-              pet records, and customer relationships — while giving pet owners a seamless
-              booking experience.
-            </p>
+              <div className="relative">
+                <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-black">
+                  <Sparkles className="h-3.5 w-3.5 text-brand-700" />
+                  The pet care operating system
+                </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" variant="accent">
-                <Link href="/register">
-                  Create Your Account <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/25 bg-white/5 text-white hover:bg-white/15"
-              >
-                <Link href="#how-it-works">See How It Works</Link>
-              </Button>
-            </div>
+                <h1 className="mt-5 text-balance text-4xl font-black leading-[1.02] tracking-tight text-black sm:text-5xl lg:text-6xl">
+                  Modern Pet Care Management,
+                  <span className="mt-2 block w-fit rounded-xl bg-brand-200/80 px-2.5 py-1 text-black">
+                    All in One Place
+                  </span>
+                </h1>
+                <p className="mt-5 max-w-xl text-base leading-relaxed text-black sm:text-lg">
+                  PetBook helps pet grooming shops and veterinary clinics manage appointments,
+                  pet records, and customer relationships — while giving pet owners a seamless
+                  booking experience.
+                </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-brand-100/75">
-              {["Free for pet owners", "10% only when you earn", "No setup fees"].map((item) => (
-                <span key={item} className="flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-brand-300" /> {item}
-                </span>
-              ))}
-            </div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button asChild size="lg" variant="accent" className="text-black hover:text-black">
+                    <Link href="/register">
+                      Create Your Account <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="border-black/15 bg-white text-black hover:bg-brand-50 hover:text-black"
+                  >
+                    <Link href="#how-it-works">See How It Works</Link>
+                  </Button>
+                </div>
 
-            <div className="mt-10 flex items-center gap-4 border-t border-white/10 pt-6">
-              <div className="flex -space-x-2">
-                {["/images/home/hero-puppy.jpg", "/images/home/hero-cat.jpg", "/images/home/hero-dog.jpg"].map(
-                  (src, index) => (
-                    <span
-                      key={src}
-                      className="relative h-9 w-9 overflow-hidden rounded-full border-2 border-brand-950"
-                    >
-                      <Image
-                        src={src}
-                        alt=""
-                        fill
-                        sizes="2.25rem"
-                        className="object-cover"
-                        priority={index === 0}
-                      />
+                <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-black">
+                  {["Free for pet owners", "10% only when you earn", "No setup fees"].map((item) => (
+                    <span key={item} className="flex items-center gap-1.5">
+                      <Check className="h-3.5 w-3.5 text-brand-700" /> {item}
                     </span>
-                  )
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-coral-300" aria-hidden="true">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <Star key={index} className="h-3.5 w-3.5 fill-current" />
                   ))}
                 </div>
-                <p className="mt-1 text-xs text-brand-100/70">
-                  Built for pet parents and the businesses that care for them
-                </p>
+
+                <div className="mt-8 flex items-center gap-4 border-t border-black/10 pt-6">
+                  <div className="flex -space-x-2">
+                    {["/images/home/hero-puppy.jpg", "/images/home/hero-cat.jpg", "/images/home/hero-dog.jpg"].map(
+                      (src, index) => (
+                        <span
+                          key={src}
+                          className="relative h-9 w-9 overflow-hidden rounded-full border-2 border-white"
+                        >
+                          <Image
+                            src={src}
+                            alt=""
+                            fill
+                            sizes="2.25rem"
+                            className="object-cover"
+                            priority={index === 0}
+                          />
+                        </span>
+                      )
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1 text-coral-500" aria-hidden="true">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star key={index} className="h-3.5 w-3.5 fill-current" />
+                      ))}
+                    </div>
+                    <p className="mt-1 text-xs text-black">
+                      Built for pet parents and the businesses that care for them
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[34rem] lg:max-w-none">
-            <div className="pointer-events-none absolute -inset-8 rounded-[3rem] bg-emerald-400/20 blur-3xl" />
-            <div className="relative overflow-hidden rounded-[2.6rem] border border-emerald-300/25 bg-gradient-to-br from-emerald-400/25 via-brand-900/85 to-brand-950 p-2.5 shadow-[0_35px_100px_-30px_rgba(0,0,0,0.85)] backdrop-blur">
-              <div className="relative overflow-hidden rounded-[2.1rem] border border-white/10 bg-brand-950/75 p-5 sm:p-7">
-                <div className="hero-grid absolute inset-0 opacity-20" />
+          <div
+            className="relative mx-auto w-full max-w-[34rem] lg:max-w-none"
+            role="img"
+            aria-label="Animated pet heartbeat monitor inside a heart"
+          >
+            <svg width="0" height="0" className="absolute" aria-hidden="true">
+              <defs>
+                <clipPath id="petbook-heart-clip" clipPathUnits="objectBoundingBox">
+                  <path d="M0.5 1 C0.42 0.91 0 0.64 0 0.34 C0 0.14 0.14 0 0.31 0 C0.4 0 0.47 0.05 0.5 0.12 C0.53 0.05 0.6 0 0.69 0 C0.86 0 1 0.14 1 0.34 C1 0.64 0.58 0.91 0.5 1 Z" />
+                </clipPath>
+              </defs>
+            </svg>
 
-                <div className="relative flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">
+            <div className="pointer-events-none absolute inset-0 scale-110 rounded-full bg-emerald-400/25 blur-3xl" />
+            <div className="relative mx-auto aspect-square w-full max-w-[32rem] drop-shadow-[0_0_80px_rgba(16,185,129,0.35)]">
+              <div
+                className="absolute inset-0 bg-emerald-300/40"
+                style={{
+                  clipPath: "url(#petbook-heart-clip)",
+                  WebkitClipPath: "url(#petbook-heart-clip)",
+                }}
+              />
+              <div
+                className="absolute inset-[1.5%] overflow-hidden bg-brand-950"
+                style={{
+                  clipPath: "url(#petbook-heart-clip)",
+                  WebkitClipPath: "url(#petbook-heart-clip)",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/45 via-brand-900 to-brand-950" />
+                <div className="hero-grid absolute inset-0 opacity-20" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(52,211,153,0.32),transparent_44%)]" />
+
+                <div className="absolute inset-x-0 top-[14%] flex justify-center">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-emerald-200">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-300" />
                     </span>
                     Live pet pulse
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand-100/55">
-                    Vet-connected care
-                  </span>
                 </div>
 
-                <div className="relative mt-8 grid place-items-center">
-                  <div className="absolute h-52 w-52 rounded-full border border-emerald-300/30 motion-safe:animate-pulse-ring" />
-                  <div className="absolute h-40 w-40 rounded-full border border-emerald-300/20 motion-safe:animate-pulse-ring [animation-delay:700ms]" />
-                  <div className="relative grid h-32 w-32 place-items-center rounded-full border border-emerald-300/30 bg-emerald-400/10 shadow-[0_0_60px_-10px_rgba(52,211,153,0.75)]">
-                    <HeartPulse
-                      className="h-16 w-16 text-emerald-300 motion-safe:animate-heartbeat"
-                      strokeWidth={1.5}
-                    />
-                  </div>
-                </div>
-
-                <div className="relative mt-6 text-center">
-                  <p className="text-5xl font-black tracking-tight">
-                    <span className="text-emerald-300">128</span>
-                    <span className="ml-2 text-sm font-bold text-brand-100/60">BPM</span>
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-brand-100/70">
-                    Steady rhythm · Every pet monitored with care
-                  </p>
-                </div>
-
-                <div className="relative mt-6 overflow-hidden rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <svg viewBox="0 0 360 72" className="h-16 w-full" fill="none" aria-hidden="true">
-                    <path
-                      d="M0 40 H52 L62 40 L70 26 L78 54 L88 14 L100 48 L110 40 H156 L164 40 L172 30 L180 50 L188 18 L200 40 H240 L248 40 L256 32 L264 48 L272 22 L282 40 H360"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-emerald-300/15"
-                    />
-                    <path
-                      d="M0 40 H52 L62 40 L70 26 L78 54 L88 14 L100 48 L110 40 H156 L164 40 L172 30 L180 50 L188 18 L200 40 H240 L248 40 L256 32 L264 48 L272 22 L282 40 H360"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      pathLength="360"
-                      strokeDasharray="64 296"
-                      className="text-emerald-300 motion-safe:animate-ecg-dash"
-                    />
-                  </svg>
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-brand-100/45">
-                    <span>Real-time vitals</span>
-                    <span className="flex items-center gap-1.5 text-emerald-300">
-                      <ShieldCheck className="h-3 w-3" /> Secure
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative mt-3 grid grid-cols-3 gap-2">
-                  {[
-                    { label: "Heart", value: "Healthy", icon: HeartPulse },
-                    { label: "Rhythm", value: "Steady", icon: BellRing },
-                    { label: "Care", value: "24/7", icon: ShieldCheck },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3"
-                    >
-                      <item.icon className="h-4 w-4 text-emerald-300" />
-                      <p className="mt-2 text-xs font-black">{item.value}</p>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-brand-100/45">
-                        {item.label}
-                      </p>
+                <div className="absolute left-1/2 top-[36%] -translate-x-1/2 -translate-y-1/2">
+                  <div className="relative grid place-items-center">
+                    <div className="pet-pulse-ring absolute h-44 w-44 rounded-full border border-emerald-300/30 sm:h-52 sm:w-52" />
+                    <div className="pet-pulse-ring absolute h-32 w-32 rounded-full border border-emerald-300/20 [animation-delay:700ms] sm:h-40 sm:w-40" />
+                    <div className="pet-heart-glow relative grid h-24 w-24 place-items-center rounded-full border border-emerald-300/30 bg-emerald-400/10 sm:h-28 sm:w-28">
+                      <HeartPulse
+                        className="pet-heartbeat h-12 w-12 text-emerald-300 sm:h-14 sm:w-14"
+                        strokeWidth={2}
+                      />
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-0 top-[55%] text-center">
+                  <p className="text-4xl font-black tracking-tight sm:text-5xl">
+                    <span className="text-emerald-300">128</span>
+                    <span className="ml-2 text-xs font-bold text-brand-100/60 sm:text-sm">BPM</span>
+                  </p>
+                  <p className="mt-1 text-[10px] font-semibold text-brand-100/70 sm:text-xs">
+                    Steady rhythm · Every pet monitored
+                  </p>
+                </div>
+
+                <div className="absolute inset-x-[20%] top-[67%]">
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20 p-2">
+                    <svg
+                      viewBox="0 0 360 72"
+                      className="h-10 w-full sm:h-12"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M0 40 H52 L62 40 L70 26 L78 54 L88 14 L100 48 L110 40 H156 L164 40 L172 30 L180 50 L188 18 L200 40 H240 L248 40 L256 32 L264 48 L272 22 L282 40 H360"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-emerald-300/15"
+                      />
+                      <path
+                        d="M0 40 H52 L62 40 L70 26 L78 54 L88 14 L100 48 L110 40 H156 L164 40 L172 30 L180 50 L188 18 L200 40 H240 L248 40 L256 32 L264 48 L272 22 L282 40 H360"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        pathLength="360"
+                        strokeDasharray="64 296"
+                        className="pet-ecg-dash text-emerald-300"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-0 top-[81%] flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-200/80">
+                  <ShieldCheck className="h-3 w-3" /> Vet-connected care
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <section className="border-b bg-white/75">
-        <div className="page-shell grid gap-4 py-6 sm:grid-cols-2 lg:grid-cols-4">
-          {trustBadges.map((badge) => (
-            <div key={badge.title} className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
-                <badge.icon className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-black">{badge.title}</p>
-                <p className="text-xs text-muted-foreground">{badge.text}</p>
+        <div className="relative border-t border-white/15 bg-white/90 backdrop-blur-xl">
+          <div className="page-shell grid gap-4 py-4 sm:grid-cols-2 lg:grid-cols-4">
+            {trustBadges.map((badge) => (
+              <div key={badge.title} className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                  <badge.icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-black">{badge.title}</p>
+                  <p className="text-xs text-muted-foreground">{badge.text}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      <section id="features" className="page-shell scroll-mt-20 py-16 lg:py-20">
+      <section
+        id="features"
+        className="page-shell scroll-mt-20 py-16 lg:flex lg:min-h-[calc(100svh-4rem)] lg:flex-col lg:justify-center lg:py-20"
+      >
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Core features</p>
           <h2 className="mt-2 text-balance text-3xl font-black tracking-tight sm:text-4xl">

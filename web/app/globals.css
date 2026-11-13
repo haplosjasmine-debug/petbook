@@ -112,3 +112,89 @@
     scrollbar-width: none;
   }
 }
+
+@keyframes pet-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgb(52 211 153 / 0.45));
+  }
+  15% {
+    transform: scale(1.22);
+    filter: drop-shadow(0 0 24px rgb(52 211 153 / 0.95));
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.14);
+    filter: drop-shadow(0 0 18px rgb(52 211 153 / 0.75));
+  }
+  60%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pet-heart-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 44px -14px rgb(52 211 153 / 0.65);
+    background-color: rgb(52 211 153 / 0.1);
+  }
+  15% {
+    box-shadow: 0 0 90px -6px rgb(52 211 153 / 0.95);
+    background-color: rgb(52 211 153 / 0.24);
+  }
+  30% {
+    box-shadow: 0 0 44px -14px rgb(52 211 153 / 0.65);
+    background-color: rgb(52 211 153 / 0.1);
+  }
+  45% {
+    box-shadow: 0 0 74px -8px rgb(52 211 153 / 0.85);
+    background-color: rgb(52 211 153 / 0.18);
+  }
+  60%,
+  100% {
+    box-shadow: 0 0 44px -14px rgb(52 211 153 / 0.65);
+    background-color: rgb(52 211 153 / 0.1);
+  }
+}
+
+@keyframes pet-pulse-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes pet-ecg-dash {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -360;
+  }
+}
+
+.pet-heartbeat {
+  transform-origin: center;
+  animation: pet-heartbeat 1.15s ease-in-out infinite;
+}
+
+.pet-heart-glow {
+  animation: pet-heart-glow 1.15s ease-in-out infinite;
+}
+
+.pet-pulse-ring {
+  animation: pet-pulse-ring 2.1s ease-out infinite;
+}
+
+.pet-ecg-dash {
+  animation: pet-ecg-dash 2.2s linear infinite;
+}
