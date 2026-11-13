@@ -22,7 +22,15 @@ export interface Customer {
   first_name: string;
   last_name: string;
   phone: string | null;
+  photo: string | null;
   loyalty_points: number;
+  date_created?: string;
+}
+
+export interface ShopCustomer {
+  id: number;
+  shop: number | Shop;
+  customer: number | Customer;
   date_created?: string;
 }
 

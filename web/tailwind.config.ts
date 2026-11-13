@@ -95,6 +95,21 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
           "50%": { transform: "translateY(-10px) rotate(1.5deg)" },
         },
+        heartbeat: {
+          "0%, 100%": { transform: "scale(1)" },
+          "14%": { transform: "scale(1.16)" },
+          "28%": { transform: "scale(1)" },
+          "42%": { transform: "scale(1.12)" },
+          "70%": { transform: "scale(1)" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(0.72)", opacity: "0.65" },
+          "80%, 100%": { transform: "scale(1.35)", opacity: "0" },
+        },
+        "ecg-dash": {
+          from: { strokeDashoffset: "0" },
+          to: { strokeDashoffset: "-360" },
+        },
         "float-soft": {
           "0%, 100%": { transform: "translateY(0) rotate(-1deg)" },
           "50%": { transform: "translateY(-16px) rotate(1deg)" },
@@ -111,6 +126,9 @@ const config: Config = {
         float: "float 6s ease-in-out infinite",
         "float-delayed": "float 7s ease-in-out 1.2s infinite",
         "float-slow": "float-soft 9s ease-in-out infinite",
+        heartbeat: "heartbeat 1.3s ease-in-out infinite",
+        "pulse-ring": "pulse-ring 2.4s ease-out infinite",
+        "ecg-dash": "ecg-dash 2.4s linear infinite",
         "spin-slow": "spin 24s linear infinite",
         marquee: "marquee 60s linear infinite",
       },

@@ -3,6 +3,7 @@ import { Logo } from "@/components/logo";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { NotificationCenter } from "@/components/notification-center";
 import { UserMenu } from "@/components/user-menu";
+import { directusFileUrl } from "@/lib/directus";
 import { appRoleLabel } from "@/lib/roles";
 import type { Session } from "@/lib/types";
 
@@ -44,14 +45,22 @@ export function DashboardShell({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-secondary sm:inline"
-            >
-              Public site
-            </Link>
+            {portal === "customer" || portal === "staff" ? (
+              <Link
+                href="/"
+                className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-secondary sm:inline"
+              >
+                Public site
+              </Link>
+            ) : null}
             {portal !== "admin" ? <NotificationCenter portal={portal} /> : null}
-            <UserMenu name={name} role={appRoleLabel(session.appRole)} dashboardHref={home} />
+            <UserMenu
+              name={name}
+              role={appRoleLabel(session.appRole)}
+              dashboardHref={home}
+              avatarUrl={directusFileUrl(session.customer?.photo)}
+              profileHref={portal === "customer" ? "/dashboard/profile" : undefined}
+            />
           </div>
         </div>
       </header>

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       weight_kg: input.weight_kg ?? null,
       color: input.color || null,
       notes: input.notes || null,
-      photo: null,
+      photo: input.photo || null,
     });
 
     return NextResponse.json({ pet }, { status: 201 });

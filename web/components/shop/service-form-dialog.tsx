@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, ImagePlus, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUploadButton } from "@/components/shop/image-upload-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -216,7 +217,8 @@ export function ServiceFormDialog({
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Paste image URLs. The first image is the cover shown in search results.
+              Upload photos or paste image URLs. The first image is the cover shown in search
+              results.
             </p>
             {form.images.length ? (
               <div className="space-y-2">
@@ -264,17 +266,29 @@ export function ServiceFormDialog({
                 ))}
               </div>
             ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={form.images.length >= 8}
-              onClick={() =>
-                setForm((current) => ({ ...current, images: [...current.images, ""] }))
-              }
-            >
-              <ImagePlus className="h-4 w-4" /> Add image
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <ImageUploadButton
+                label="Upload image"
+                disabled={form.images.length >= 8}
+                onUploaded={(image) =>
+                  setForm((current) => ({
+                    ...current,
+                    images: [...current.images, image.url].slice(0, 8),
+                  }))
+                }
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={form.images.length >= 8}
+                onClick={() =>
+                  setForm((current) => ({ ...current, images: [...current.images, ""] }))
+                }
+              >
+                <ImagePlus className="h-4 w-4" /> Add image URL
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-3 rounded-2xl border bg-secondary/40 p-3.5">

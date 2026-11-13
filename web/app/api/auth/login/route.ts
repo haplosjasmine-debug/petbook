@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       role: session.role,
       appRole: session.appRole,
-      home: appRoleHome(session.appRole),
+      home: session.appRole === "pet_owner" ? "/" : appRoleHome(session.appRole),
       user: {
         ...user,
         role: {

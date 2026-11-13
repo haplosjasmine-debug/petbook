@@ -3,6 +3,7 @@ import { MapPin, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { directusFileUrl } from "@/lib/directus";
 import { formatDistance } from "@/lib/geo";
 import type { Shop } from "@/lib/types";
 import { formatMoney, initials } from "@/lib/utils";
@@ -22,12 +23,18 @@ export function ShopCard({
   ratingAverage?: number;
   reviewCount?: number;
 }) {
+  const logoUrl = directusFileUrl(shop.logo);
+
   return (
     <Card className="group overflow-hidden">
       <div className="relative h-36 bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400">
         <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1px)] [background-size:18px_18px]" />
-        <div className="absolute left-5 top-5 grid h-14 w-14 place-items-center rounded-2xl bg-white/95 text-lg font-black text-brand-700 shadow-sm">
-          {initials(shop.name)}
+        <div className="absolute left-5 top-5 grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-white/95 text-lg font-black text-brand-700 shadow-sm">
+          {logoUrl ? (
+            <img src={logoUrl} alt={shop.name} className="h-full w-full object-cover" />
+          ) : (
+            initials(shop.name)
+          )}
         </div>
         {shop.featured ? (
           <Badge className="absolute right-4 top-4 bg-white/95 text-brand-700 hover:bg-white/95">

@@ -11,6 +11,7 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import { LandingPage } from "@/components/landing-page";
 import { ShopGalleryGrid } from "@/components/shop-gallery-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,20 @@ import {
   getHomeContent,
   getServicesForShops,
 } from "@/lib/public-data";
+import { getSession } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
 
 export default async function HomePage() {
+  const session = await getSession();
+
+  if (session?.appRole !== "pet_owner") {
+    return <LandingPage />;
+  }
+
+  return <CustomerHomePage />;
+}
+
+async function CustomerHomePage() {
   const [content, shops, gallery, announcements] = await Promise.all([
     getHomeContent(),
     getFeaturedShops(3),

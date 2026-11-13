@@ -1,10 +1,8 @@
-import Link from "next/link";
-import { Star } from "lucide-react";
+﻿import { Star } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { ReviewCard } from "@/components/review-card";
 import { ReviewSummaryPanel } from "@/components/review-summary";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopReviews } from "@/lib/queries";
 import { summarizeReviews } from "@/lib/reviews";
@@ -23,11 +21,6 @@ export default async function ShopReviewsPage() {
         eyebrow="Customer feedback"
         title="Reviews"
         description="See how pet parents rate your shop and services, and read what they loved about their visits."
-        action={
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/shops/${session.shop!.slug}#reviews`}>View public reviews</Link>
-          </Button>
-        }
       />
 
       {reviews.length ? (

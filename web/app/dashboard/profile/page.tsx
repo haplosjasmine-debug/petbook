@@ -2,6 +2,7 @@ import { CalendarDays, CreditCard, Mail, PawPrint, ShieldCheck } from "lucide-re
 import { PageHeader } from "@/components/page-header";
 import { ProfileForm } from "@/components/profile-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { directusFileUrl } from "@/lib/directus";
 import { customerAppointments, customerPets } from "@/lib/queries";
 import { requireCustomer } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
@@ -36,6 +37,8 @@ export default async function ProfilePage() {
               lastName={customer.last_name}
               phone={customer.phone ?? ""}
               email={session.user.email}
+              photoId={customer.photo}
+              photoUrl={directusFileUrl(customer.photo)}
             />
           </CardContent>
         </Card>

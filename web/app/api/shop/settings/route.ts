@@ -20,6 +20,7 @@ export async function PATCH(request: Request) {
       description: input.description || null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
+      logo: input.logo || null,
       ...(input.image ? { cover_image: input.image } : {}),
     });
     return NextResponse.json({ shop });

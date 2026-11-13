@@ -25,6 +25,7 @@ import { ShopMap } from "@/components/shop-map";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { directusFileUrl } from "@/lib/directus";
 import { shopCoordinates } from "@/lib/geo";
 import { getShopProfile } from "@/lib/public-data";
 import { summarizeReviews, summarizeReviewsByService } from "@/lib/reviews";
@@ -45,6 +46,7 @@ export default async function ShopDetailPage({
   const reviewSummary = summarizeReviews(reviews);
   const serviceSummaries = summarizeReviewsByService(reviews);
   const coords = shopCoordinates(shop);
+  const logoUrl = directusFileUrl(shop.logo);
   const directionsUrl = coords
     ? `https://www.google.com/maps/dir/?api=1&destination=${coords.latitude},${coords.longitude}`
     : null;
@@ -115,8 +117,12 @@ export default async function ShopDetailPage({
 
           <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
             <div className="flex items-center gap-3">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-lg font-black text-brand-700">
-                {initials(shop.name)}
+              <span className="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black text-brand-700">
+                {logoUrl ? (
+                  <img src={logoUrl} alt={shop.name} className="h-full w-full object-cover" />
+                ) : (
+                  initials(shop.name)
+                )}
               </span>
               <div>
                 <p className="text-sm font-bold">Open today</p>

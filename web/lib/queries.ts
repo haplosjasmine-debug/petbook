@@ -10,6 +10,7 @@ import type {
   Service,
   ServicePackage,
   Shop,
+  ShopCustomer,
   ShopGalleryItem,
   Staff,
   Transaction,
@@ -21,7 +22,7 @@ export function relationId(value: number | { id: number } | null | undefined) {
   return typeof value === "object" ? value.id : value;
 }
 
-export function expanded<T>(value: number | T | null | undefined): T | null {
+export function expanded<T>(value: number | string | T | null | undefined): T | null {
   return value && typeof value === "object" ? (value as T) : null;
 }
 
@@ -85,6 +86,21 @@ export async function customerNotifications(customerId: number, limit = 50) {
     "notifications",
     `filter[customer][_eq]=${customerId}&sort=-date_created&limit=${limit}`
   );
+}
+
+export async function shopCustomers(shopId: number) {
+  return listItems<ShopCustomer>(
+    "shop_customers",
+    `filter[shop][_eq]=${shopId}&fields=*,customer.*,customer.user.id,customer.user.email&sort=-date_created&limit=200`
+  );
+}
+
+export async function shopCustomerLink(shopId: number, customerId: number) {
+  const rows = await listItems<ShopCustomer>(
+    "shop_customers",
+    `filter[shop][_eq]=${shopId}&filter[customer][_eq]=${customerId}&limit=1`
+  );
+  return rows[0] ?? null;
 }
 
 export async function shopStaff(shopId: number) {

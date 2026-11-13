@@ -35,7 +35,10 @@ export function RegisterForm() {
         password: form.get("password"),
       }),
     });
-    const data = (await response.json().catch(() => ({}))) as { message?: string };
+    const data = (await response.json().catch(() => ({}))) as {
+      message?: string;
+      home?: string;
+    };
 
     if (!response.ok) {
       toast.error(data.message ?? "Unable to create the account.");
@@ -44,7 +47,7 @@ export function RegisterForm() {
     }
 
     toast.success("Account created.");
-    router.push("/dashboard");
+    router.push(data.home ?? "/");
     router.refresh();
   }
 

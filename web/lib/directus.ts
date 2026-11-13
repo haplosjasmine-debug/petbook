@@ -193,9 +193,53 @@ export async function fetchUserById(id: string) {
   return result.data;
 }
 
+export async function fetchUsersByIds(ids: string[]) {
+  if (!ids.length) return [] as DirectusUser[];
+  const result = await adminRequest<{ data: DirectusUser[] }>(
+    `/users?filter[id][_in]=${ids.join(",")}&fields=id,email,first_name,last_name,status,role.id,role.name&limit=200`
+  );
+  return result.data;
+}
+
+export async function uploadDirectusFile(file: File) {
+  const token = await getAdminToken();
+  const form = new FormData();
+  form.append("file", file, file.name);
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl()}/files`, {
+      method: "POST",
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      body: form,
+      cache: "no-store",
+    });
+  } catch (error) {
+    throw new DirectusError("Cannot reach Directus to upload the image.", 503, error);
+  }
+
+  const text = await response.text();
+  let payload: unknown = null;
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = { message: text };
+    }
+  }
+
+  if (!response.ok) {
+    throw new DirectusError(errorFromPayload(payload, response.status), response.status, payload);
+  }
+
+  const result = payload as { data?: { id?: string } };
+  if (!result.data?.id) throw new DirectusError("Directus did not return an uploaded file.", 500);
+  return result.data as { id: string };
+}
+
 export function directusFileUrl(fileId: string | null | undefined) {
   if (!fileId) return null;
-  return `${baseUrl()}/assets/${fileId}`;
+  return `${appConfig.directusPublicUrl.replace(/\/$/, "")}/assets/${fileId}`;
 }
 
 export function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {

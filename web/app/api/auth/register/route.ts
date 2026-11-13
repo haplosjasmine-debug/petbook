@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     await setSessionCookies(tokens);
 
     return NextResponse.json(
-      { message: "Account created.", userId: user.id, home: "/dashboard" },
+      { message: "Account created.", userId: user.id, home: "/" },
       { status: 201 }
     );
   } catch (error) {

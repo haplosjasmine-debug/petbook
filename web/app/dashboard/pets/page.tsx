@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { PetFormDialog } from "@/components/pets/pet-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { directusFileUrl } from "@/lib/directus";
 import { customerPets, petVaccinations } from "@/lib/queries";
 import { requireCustomer } from "@/lib/session";
 import { formatDate, initials, titleCase } from "@/lib/utils";
@@ -30,6 +31,7 @@ export default async function PetsPage() {
       {pets.length ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {pets.map((pet) => {
+            const photoUrl = directusFileUrl(pet.photo);
             const records = vaccinations.filter((vaccination) => Number(vaccination.pet) === pet.id);
             const nextDue = records
               .filter((vaccination) => vaccination.next_due_at)
@@ -42,8 +44,16 @@ export default async function PetsPage() {
             return (
               <Card key={pet.id} className="overflow-hidden">
                 <div className="flex items-center gap-3 bg-gradient-to-br from-brand-600 to-brand-500 p-5 text-white">
-                  <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/95 text-lg font-black text-brand-700">
-                    {initials(pet.name)}
+                  <span className="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-white/95 text-lg font-black text-brand-700">
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt={pet.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      initials(pet.name)
+                    )}
                   </span>
                   <div>
                     <h3 className="text-lg font-black">{pet.name}</h3>
@@ -92,7 +102,7 @@ export default async function PetsPage() {
                         View profile <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <PetFormDialog pet={pet} label="Edit" variant="ghost" />
+                    <PetFormDialog pet={pet} photoUrl={photoUrl} label="Edit" variant="ghost" />
                   </div>
                 </CardContent>
               </Card>

@@ -7,19 +7,29 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
+import type { AppRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 export type HeaderSession = {
   name: string;
   role: string;
+  appRole: AppRole;
   dashboardHref: string;
+  avatarUrl: string | null;
 } | null;
 
-const links = [
+const guestLinks = [
+  { href: "/#features", label: "Features" },
+  { href: "/#for-business", label: "For Business" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
+const customerLinks = [
   { href: "/", label: "Home" },
   { href: "/shops", label: "Shops" },
   { href: "/services", label: "Services" },
-  { href: "/business/apply", label: "For business" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -28,6 +38,7 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
+  const links = session ? customerLinks : guestLinks;
 
   async function signOut() {
     setSigningOut(true);
@@ -61,11 +72,16 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
               name={session.name}
               role={session.role}
               dashboardHref={session.dashboardHref}
+              avatarUrl={session.avatarUrl}
+              profileHref={session.appRole === "pet_owner" ? "/dashboard/profile" : undefined}
             />
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Sign in</Link>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/register">Sign Up Free</Link>
               </Button>
             </>
           )}
@@ -101,7 +117,7 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
                   onClick={() => setOpen(false)}
                   className="block rounded-xl bg-secondary px-3 py-2.5 text-sm font-semibold"
                 >
-                  {session.name} · Dashboard
+                  Dashboard
                 </Link>
                 <button
                   type="button"
@@ -109,15 +125,22 @@ export function SiteHeader({ session }: { session: HeaderSession }) {
                   disabled={signingOut}
                   className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-destructive disabled:opacity-50"
                 >
-                  {signingOut ? "Signing out…" : "Sign out"}
+                  {signingOut ? "Signing out." : "Sign out"}
                 </button>
               </div>
             ) : (
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/login" onClick={() => setOpen(false)}>
-                  Sign in
-                </Link>
-              </Button>
+              <div className="grid gap-2">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/login" onClick={() => setOpen(false)}>
+                    Log In
+                  </Link>
+                </Button>
+                <Button asChild className="w-full">
+                  <Link href="/register" onClick={() => setOpen(false)}>
+                    Sign Up Free
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>

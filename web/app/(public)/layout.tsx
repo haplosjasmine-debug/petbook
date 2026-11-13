@@ -1,10 +1,16 @@
+import { redirect } from "next/navigation";
 import { SiteHeader, type HeaderSession } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { directusFileUrl } from "@/lib/directus";
 import { appRoleHome, appRoleLabel } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
+
+  if (session?.appRole === "business_owner" || session?.appRole === "super_admin") {
+    redirect(appRoleHome(session.appRole));
+  }
 
   let headerSession: HeaderSession = null;
   if (session) {
@@ -14,7 +20,9 @@ export default async function PublicLayout({ children }: { children: React.React
     headerSession = {
       name,
       role: appRoleLabel(session.appRole),
+      appRole: session.appRole,
       dashboardHref: appRoleHome(session.appRole),
+      avatarUrl: directusFileUrl(session.customer?.photo),
     };
   }
 

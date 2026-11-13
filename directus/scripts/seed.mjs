@@ -225,6 +225,14 @@ function at(dayOffset, hour, minute = 0) {
   return date.toISOString();
 }
 
+async function ensureShopCustomer(shop, customer) {
+  return ensure(
+    "shop_customers",
+    { shop: { _eq: shop.id }, customer: { _eq: customer.id } },
+    { shop: shop.id, customer: customer.id }
+  );
+}
+
 async function ensureAppointment({
   qr,
   shop,
@@ -240,7 +248,7 @@ async function ensureAppointment({
   checkedInAt = null,
   completedAt = null,
 }) {
-  return ensure(
+  const appointment = await ensure(
     "appointments",
     { qr_code: { _eq: qr } },
     {
@@ -259,6 +267,8 @@ async function ensureAppointment({
       completed_at: completedAt,
     }
   );
+  await ensureShopCustomer(shop, customer);
+  return appointment;
 }
 
 async function ensureTransaction(appointment, shop, customer, amount, { paid = true } = {}) {

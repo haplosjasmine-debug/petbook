@@ -32,6 +32,7 @@ export async function PATCH(
       weight_kg: input.weight_kg ?? null,
       color: input.color || null,
       notes: input.notes || null,
+      photo: input.photo || null,
     });
 
     return NextResponse.json({ pet: updated });

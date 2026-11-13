@@ -11,6 +11,7 @@ import {
   updateItem,
 } from "@/lib/directus";
 import { notifyBookingCreated } from "@/lib/notifications";
+import { ensureShopCustomer } from "@/lib/shop-customers";
 import { createCheckoutSession } from "@/lib/paymongo";
 import { isServiceAvailableAt } from "@/lib/service-availability";
 import { ensurePendingTransaction, markTransactionPaid } from "@/lib/payments";
@@ -118,6 +119,8 @@ export async function POST(request: Request) {
       checked_in_at: null,
       completed_at: null,
     });
+
+    await ensureShopCustomer(shop.id, customer.id);
 
     let transaction = await ensurePendingTransaction(appointment);
     let checkoutUrl: string | null = null;

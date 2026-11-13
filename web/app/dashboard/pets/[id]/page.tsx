@@ -15,7 +15,7 @@ import { DeletePetButton, PetFormDialog } from "@/components/pets/pet-form-dialo
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getItem } from "@/lib/directus";
+import { directusFileUrl, getItem } from "@/lib/directus";
 import { petAppointments, petVaccinations } from "@/lib/queries";
 import { requireCustomer } from "@/lib/session";
 import type { Pet } from "@/lib/types";
@@ -39,6 +39,8 @@ export default async function PetDetailPage({
 
   if (!pet || Number(pet.customer) !== session.customer?.id) notFound();
 
+  const photoUrl = directusFileUrl(pet.photo);
+
   const [vaccinations, appointments] = await Promise.all([
     petVaccinations(pet.id).catch(() => []),
     petAppointments(pet.id).catch(() => []),
@@ -58,7 +60,7 @@ export default async function PetDetailPage({
         description={`${pet.breed || titleCase(pet.species)} · ${titleCase(pet.sex)}`}
         action={
           <div className="flex gap-2">
-            <PetFormDialog pet={pet} label="Edit profile" variant="outline" />
+            <PetFormDialog pet={pet} photoUrl={photoUrl} label="Edit profile" variant="outline" />
             <DeletePetButton petId={pet.id} redirectTo="/dashboard/pets" />
           </div>
         }
@@ -68,8 +70,16 @@ export default async function PetDetailPage({
         <div className="space-y-4">
           <Card>
             <CardContent className="p-6 text-center">
-              <span className="mx-auto grid h-24 w-24 place-items-center rounded-[2rem] bg-gradient-to-br from-brand-600 to-brand-400 text-3xl font-black text-white">
-                {initials(pet.name)}
+              <span className="mx-auto grid h-24 w-24 place-items-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 to-brand-400 text-3xl font-black text-white">
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt={pet.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  initials(pet.name)
+                )}
               </span>
               <h2 className="mt-4 text-xl font-black">{pet.name}</h2>
               <p className="text-sm text-muted-foreground">

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CalendarDays, Clock, Scissors, Stethoscope } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
@@ -8,7 +7,6 @@ import {
   ServiceFormDialog,
 } from "@/components/shop/service-form-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopServices } from "@/lib/queries";
 import { requireShop } from "@/lib/session";
@@ -106,9 +104,6 @@ export default async function ShopServicesPage() {
             Customers see active services on your shop page. Hide a service instead of deleting it
             if it has past appointments.
           </p>
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/shops/${session.shop!.slug}`}>Preview public page</Link>
-          </Button>
         </CardContent>
       </Card>
     </>

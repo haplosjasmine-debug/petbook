@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus } from "lucide-react";
+import { Camera, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUploadButton } from "@/components/shop/image-upload-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,15 +23,19 @@ import type { Pet } from "@/lib/types";
 
 export function PetFormDialog({
   pet,
+  photoUrl,
   label,
   variant = "default",
 }: {
   pet?: Pet;
+  photoUrl?: string | null;
   label?: string;
   variant?: "default" | "outline" | "soft" | "ghost";
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentPhotoId, setCurrentPhotoId] = useState(pet?.photo ?? "");
+  const [photoPreview, setPhotoPreview] = useState(photoUrl ?? null);
   const [form, setForm] = useState({
     name: pet?.name ?? "",
     species: pet?.species ?? "dog",
@@ -55,8 +60,10 @@ export function PetFormDialog({
         color: pet?.color ?? "",
         notes: pet?.notes ?? "",
       });
+      setCurrentPhotoId(pet?.photo ?? "");
+      setPhotoPreview(photoUrl ?? null);
     }
-  }, [open, pet]);
+  }, [open, pet, photoUrl]);
 
   function update(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -72,6 +79,7 @@ export function PetFormDialog({
       body: JSON.stringify({
         ...form,
         weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
+        photo: currentPhotoId || null,
       }),
     });
 
@@ -105,6 +113,49 @@ export function PetFormDialog({
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-dashed bg-secondary/40 p-4 sm:flex-row sm:items-center">
+            <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border bg-white text-lg font-black text-brand-700">
+              {photoPreview ? (
+                <img
+                  src={photoPreview}
+                  alt={form.name || "Pet photo"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Camera className="h-7 w-7 text-brand-600" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Pet photo</p>
+              <p className="text-xs text-muted-foreground">
+                Add a clear photo so your groomer or vet knows exactly who is visiting.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <ImageUploadButton
+                endpoint="/api/customer/uploads"
+                label={photoPreview ? "Replace photo" : "Upload photo"}
+                onUploaded={(image) => {
+                  setCurrentPhotoId(image.id);
+                  setPhotoPreview(image.url);
+                }}
+              />
+              {photoPreview ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setCurrentPhotoId("");
+                    setPhotoPreview(null);
+                  }}
+                >
+                  <X className="h-4 w-4" /> Remove
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="pet-name">Name</Label>

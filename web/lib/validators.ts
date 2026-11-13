@@ -40,6 +40,7 @@ export const petSchema = z.object({
   weight_kg: z.coerce.number().min(0).max(200).optional().nullable(),
   color: z.string().max(60).optional().or(z.literal("")),
   notes: z.string().max(2000).optional().or(z.literal("")),
+  photo: z.string().max(64).nullable().optional(),
 });
 
 export const bookingSchema = z.object({
@@ -102,7 +103,9 @@ export const staffSchema = z.object({
 export const profileSchema = z.object({
   first_name: z.string().min(1).max(100),
   last_name: z.string().min(1).max(100),
+  email: z.string().email().max(255),
   phone: z.string().max(32).optional().or(z.literal("")),
+  photo: z.string().max(64).nullable().optional(),
 });
 
 export const shopSettingsSchema = z.object({
@@ -113,6 +116,7 @@ export const shopSettingsSchema = z.object({
   address: z.string().max(255).optional().or(z.literal("")),
   description: z.string().max(2000).optional().or(z.literal("")),
   image: z.string().max(255).optional().or(z.literal("")),
+  logo: z.string().max(255).optional().or(z.literal("")),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
 });

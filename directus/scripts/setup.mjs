@@ -397,6 +397,15 @@ const collections = [
     },
   ],
   [
+    "shop_customers",
+    {
+      icon: "group",
+      note: "Customers managed by each shop.",
+      display_template: "{{customer.first_name}} {{customer.last_name}}",
+      sort_field: "-date_created",
+    },
+  ],
+  [
     "shops",
     {
       icon: "storefront",
@@ -557,7 +566,25 @@ const fieldDefinitions = {
     ["first_name", stringField({ sort: 1 }, { is_nullable: false })],
     ["last_name", stringField({ sort: 2 }, { is_nullable: false })],
     ["phone", stringField({ sort: 3, width: "half" })],
+    ["photo", fileField("Customer profile photo.")],
     ["loyalty_points", integerField({ sort: 4, width: "half" }, { default_value: 0 })],
+    ["date_created", createdAtField()],
+  ],
+  shop_customers: [
+    [
+      "shop",
+      relationField("shops", {
+        template: "{{name}}",
+        note: "Shop managing this customer.",
+      }),
+    ],
+    [
+      "customer",
+      relationField("customers", {
+        template: "{{first_name}} {{last_name}}",
+        note: "Customer linked to the shop.",
+      }),
+    ],
     ["date_created", createdAtField()],
   ],
   shops: [
@@ -884,6 +911,9 @@ const fieldDefinitions = {
 
 const relations = [
   ["customers", "user", "directus_users"],
+  ["customers", "photo", "directus_files"],
+  ["shop_customers", "shop", "shops"],
+  ["shop_customers", "customer", "customers"],
   ["shops", "owner", "directus_users"],
   ["shops", "logo", "directus_files"],
   ["shops", "cover_image", "directus_files"],
@@ -1010,10 +1040,14 @@ async function setupPolicies() {
   const customerPolicy = await ensurePolicy("Customer");
   const shopPolicy = await ensurePolicy("Shop Owner");
   const staffPolicy = await ensurePolicy("Staff");
+  const publicPolicy = (await raw("/policies?limit=100")).data.find(
+    (policy) => policy.name === "$t:public_label" || policy.name === "Public"
+  );
 
   await ensureAccess(customerRole, customerPolicy);
   await ensureAccess(shopRole, shopPolicy);
   await ensureAccess(staffRole, staffPolicy);
+  await ensurePermission(publicPolicy?.id, "directus_files", "read");
 
   const currentUser = { id: { _eq: "$CURRENT_USER" } };
   await ensurePermission(customerPolicy, "directus_users", "read", currentUser, {
@@ -1078,6 +1112,9 @@ async function setupPolicies() {
     await ensurePermission(shopPolicy, collection, "delete", scoped);
   }
   await ensurePermission(shopPolicy, "reviews", "read", scoped);
+  await ensurePermission(shopPolicy, "shop_customers", "read", scoped);
+  await ensurePermission(shopPolicy, "shop_customers", "create", null, { presets });
+  await ensurePermission(shopPolicy, "shop_customers", "delete", scoped);
   for (const collection of ["customers", "pets", "loyalty_points"]) {
     await ensurePermission(shopPolicy, collection, "read");
   }

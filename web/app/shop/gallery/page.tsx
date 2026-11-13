@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Images, PawPrint } from "lucide-react";
+﻿import { Images, PawPrint } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -7,7 +6,6 @@ import {
   GalleryFormDialog,
 } from "@/components/shop/gallery-form-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopGallery } from "@/lib/queries";
 import { requireShop } from "@/lib/session";
@@ -76,9 +74,6 @@ export default async function ShopGalleryPage() {
             Featured photos can show up on the PetBook homepage. Hidden photos stay in your
             workspace but are not shown to customers.
           </p>
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/shops/${session.shop!.slug}#gallery`}>Preview public gallery</Link>
-          </Button>
         </CardContent>
       </Card>
     </>

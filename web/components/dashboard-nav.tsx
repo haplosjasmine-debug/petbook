@@ -13,6 +13,7 @@ import {
   Scissors,
   Settings,
   Star,
+  UserRound,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,11 +24,11 @@ const items = {
     { href: "/dashboard/appointments", label: "Appointments", icon: CalendarDays },
     { href: "/dashboard/pets", label: "My pets", icon: PawPrint },
     { href: "/dashboard/loyalty", label: "Loyalty", icon: CreditCard },
-    { href: "/dashboard/profile", label: "Profile", icon: Settings },
   ],
   shop: [
     { href: "/shop", label: "Overview", icon: LayoutDashboard },
     { href: "/shop/appointments", label: "Appointments", icon: CalendarDays },
+    { href: "/shop/customers", label: "Customers", icon: UserRound },
     { href: "/shop/services", label: "Services", icon: Scissors },
     { href: "/shop/gallery", label: "Gallery", icon: Images },
     { href: "/shop/reviews", label: "Reviews", icon: Star },

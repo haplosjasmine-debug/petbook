@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Crosshair, Loader2, Save } from "lucide-react";
+import { Crosshair, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUploadButton } from "@/components/shop/image-upload-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Shop } from "@/lib/types";
 
-export function ShopSettingsForm({ shop }: { shop: Shop }) {
+export function ShopSettingsForm({ shop, logoUrl }: { shop: Shop; logoUrl: string | null }) {
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [logoId, setLogoId] = useState(shop.logo ?? "");
+  const [logoPreview, setLogoPreview] = useState(logoUrl);
   const [latitude, setLatitude] = useState(
     shop.latitude === null || shop.latitude === undefined ? "" : String(shop.latitude)
   );
@@ -57,6 +60,7 @@ export function ShopSettingsForm({ shop }: { shop: Shop }) {
         city: form.get("city"),
         address: form.get("address"),
         description: form.get("description"),
+        logo: logoId,
         latitude: latitude === "" ? null : Number(latitude),
         longitude: longitude === "" ? null : Number(longitude),
       }),
@@ -75,6 +79,45 @@ export function ShopSettingsForm({ shop }: { shop: Shop }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-dashed bg-secondary/40 p-4 sm:flex-row sm:items-center">
+        <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border bg-white">
+          {logoPreview ? (
+            <img src={logoPreview} alt={shop.name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-lg font-black text-brand-700">
+              {shop.name.slice(0, 2).toUpperCase()}
+            </span>
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold">Shop logo</p>
+          <p className="text-xs text-muted-foreground">
+            Square images work best. This logo appears on your public shop page and listings.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <ImageUploadButton
+            label={logoPreview ? "Replace logo" : "Upload logo"}
+            onUploaded={(image) => {
+              setLogoId(image.id);
+              setLogoPreview(image.url);
+            }}
+          />
+          {logoPreview ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setLogoId("");
+                setLogoPreview(null);
+              }}
+            >
+              <X className="h-4 w-4" /> Remove
+            </Button>
+          ) : null}
+        </div>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="shop-name">Shop name</Label>
