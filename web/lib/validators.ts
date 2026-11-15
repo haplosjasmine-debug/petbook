@@ -50,7 +50,7 @@ export const bookingSchema = z.object({
   staff_id: z.coerce.number().int().positive().nullable().optional(),
   start_at: z.string().min(5),
   notes: z.string().max(2000).optional().or(z.literal("")),
-  payment_method: z.enum(["mock", "cash", "paymongo"]).optional(),
+  payment_method: z.enum(["mock", "cash", "paymongo", "xendit"]).optional(),
 });
 
 export const serviceSchema = z.object({
@@ -110,3 +110,5 @@ export const statusSchema = z.object({
 export const checkInSchema = z.object({
   code: z.string().min(6).max(120),
 });
+
+

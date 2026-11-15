@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Loader2, PawPrint } from "lucide-react";
+import { Building2, Loader2, PawPrint, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,104 @@ import { cn } from "@/lib/utils";
 
 type Role = "customer" | "shop_owner";
 
+type ApiResponse = {
+  message?: string;
+  verification_token?: string;
+};
+
 export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role }) {
   const [role, setRole] = useState<Role>(initialRole);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
   const router = useRouter();
+
+  async function sendOtp() {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setSendingOtp(true);
+    setVerificationToken("");
+    setVerifiedEmail("");
+    setOtp("");
+
+    try {
+      const response = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+
+      const data = (await response.json()) as ApiResponse;
+
+      if (!response.ok) {
+        toast.error(data.message ?? "Unable to send verification code.");
+        return;
+      }
+
+      toast.success(data.message ?? "Verification code sent.");
+    } catch {
+      toast.error("Unable to connect. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  }
+
+  async function verifyOtp() {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!/^\d{6}$/.test(otp)) {
+      toast.error("Enter the 6-digit verification code.");
+      return;
+    }
+
+    setVerifyingOtp(true);
+
+    try {
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          otp,
+        }),
+      });
+
+      const data = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !data.verification_token) {
+        toast.error(data.message ?? "Email verification failed.");
+        return;
+      }
+
+      setVerificationToken(data.verification_token);
+      setVerifiedEmail(normalizedEmail);
+      toast.success("Email verified successfully.");
+    } catch {
+      toast.error("Unable to verify email. Please try again.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!verificationToken || verifiedEmail !== normalizedEmail) {
+      toast.error("Please verify your email before creating an account.");
+      return;
+    }
+
     const form = new FormData(event.currentTarget);
 
     if (String(form.get("password")) !== String(form.get("confirm_password"))) {
@@ -28,39 +119,47 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
     }
 
     setLoading(true);
-    const payload = {
-      role,
-      first_name: form.get("first_name"),
-      last_name: form.get("last_name"),
-      email: form.get("email"),
-      phone: form.get("phone"),
-      password: form.get("password"),
-      ...(role === "shop_owner"
-        ? {
-            shop_name: form.get("shop_name"),
-            city: form.get("city"),
-            address: form.get("address"),
-            description: form.get("description"),
-          }
-        : {}),
-    };
 
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = (await response.json().catch(() => ({}))) as { message?: string };
+    try {
+      const payload = {
+        role,
+        first_name: form.get("first_name"),
+        last_name: form.get("last_name"),
+        email: normalizedEmail,
+        phone: form.get("phone"),
+        password: form.get("password"),
+        verification_token: verificationToken,
+        ...(role === "shop_owner"
+          ? {
+              shop_name: form.get("shop_name"),
+              city: form.get("city"),
+              address: form.get("address"),
+              description: form.get("description"),
+            }
+          : {}),
+      };
 
-    if (!response.ok) {
-      toast.error(data.message ?? "Unable to create the account.");
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as ApiResponse;
+
+      if (!response.ok) {
+        toast.error(data.message ?? "Unable to create the account.");
+        return;
+      }
+
+      toast.success("Account created.");
+      router.push(role === "shop_owner" ? "/shop" : "/dashboard");
+      router.refresh();
+    } catch {
+      toast.error("Unable to create the account. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    toast.success("Account created.");
-    router.push(role === "shop_owner" ? "/shop" : "/dashboard");
-    router.refresh();
   }
 
   return (
@@ -82,7 +181,10 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
             )}
           >
             <option.icon
-              className={cn("h-5 w-5", role === option.value ? "text-brand-700" : "text-muted-foreground")}
+              className={cn(
+                "h-5 w-5",
+                role === option.value ? "text-brand-700" : "text-muted-foreground"
+              )}
             />
             <span className="text-sm font-bold">{option.label}</span>
           </button>
@@ -103,12 +205,84 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="email">Email address</Label>
-          <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setVerificationToken("");
+              setVerifiedEmail("");
+              setOtp("");
+            }}
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="phone">Mobile number</Label>
           <Input id="phone" name="phone" placeholder="+63 917 000 0000" />
         </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border bg-secondary/30 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold">Email verification</p>
+            <p className="text-xs text-muted-foreground">
+              Verify your email before creating your account.
+            </p>
+          </div>
+          {verifiedEmail === email.trim().toLowerCase() && verificationToken ? (
+            <CheckCircle2 className="h-6 w-6 text-green-600" />
+          ) : null}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={sendOtp}
+          disabled={sendingOtp || !email.trim() || Boolean(verificationToken)}
+        >
+          {sendingOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {sendingOtp ? "Sending code..." : "Send OTP"}
+        </Button>
+
+        <div className="space-y-2">
+          <Label htmlFor="otp">6-digit verification code</Label>
+          <Input
+            id="otp"
+            value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="Enter OTP"
+            inputMode="numeric"
+            maxLength={6}
+            disabled={Boolean(verificationToken)}
+          />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={verifyOtp}
+          disabled={verifyingOtp || otp.length !== 6 || Boolean(verificationToken)}
+        >
+          {verifyingOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {verifyingOtp
+            ? "Verifying..."
+            : verificationToken
+              ? "Email verified"
+              : "Verify Email"}
+        </Button>
+
+        {verificationToken ? (
+          <p className="text-sm font-medium text-green-700">
+            Your email address has been verified.
+          </p>
+        ) : null}
       </div>
 
       {role === "shop_owner" ? (
@@ -118,7 +292,12 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
           </p>
           <div className="space-y-2">
             <Label htmlFor="shop_name">Shop name</Label>
-            <Input id="shop_name" name="shop_name" placeholder="Happy Paws Grooming" required={role === "shop_owner"} />
+            <Input
+              id="shop_name"
+              name="shop_name"
+              placeholder="Happy Paws Grooming"
+              required={role === "shop_owner"}
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -149,7 +328,13 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirm_password">Confirm password</Label>
-          <Input id="confirm_password" name="confirm_password" type="password" minLength={8} required />
+          <Input
+            id="confirm_password"
+            name="confirm_password"
+            type="password"
+            minLength={8}
+            required
+          />
         </div>
       </div>
 
@@ -168,9 +353,18 @@ export function RegisterForm({ initialRole = "customer" }: { initialRole?: Role 
         </span>
       </label>
 
-      <Button type="submit" className="w-full" size="lg" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full"
+        size="lg"
+        disabled={
+          loading ||
+          !verificationToken ||
+          verifiedEmail !== email.trim().toLowerCase()
+        }
+      >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {loading ? "Creating account…" : "Create account"}
+        {loading ? "Creating account..." : "Create account"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

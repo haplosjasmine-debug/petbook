@@ -12,6 +12,7 @@ import {
 } from "@/lib/directus";
 import { notifyBookingCreated } from "@/lib/notifications";
 import { createCheckoutSession } from "@/lib/paymongo";
+import { createXenditPayment } from "@/lib/xendit";
 import { ensurePendingTransaction, markTransactionPaid } from "@/lib/payments";
 import type {
   Appointment,
@@ -49,20 +50,24 @@ export async function POST(request: Request) {
 
     const shopResult = await getItem<{ data: Shop }>("shops", input.shop_id, "?fields=*");
     const shop = shopResult.data;
+
     if (!shop || !shop.active) {
       return NextResponse.json({ message: "That shop is not accepting bookings." }, { status: 400 });
     }
 
     let staff: Staff | null = null;
+
     if (input.staff_id) {
       const staffResult = await getItem<{ data: Staff }>("staff", input.staff_id, "?fields=*");
       staff = staffResult.data ?? null;
+
       if (!staff || Number(staff.shop) !== shop.id || !staff.active) {
         return NextResponse.json({ message: "Choose an available staff member." }, { status: 400 });
       }
     }
 
     const startAt = new Date(input.start_at);
+
     if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
       return NextResponse.json({ message: "Choose a future appointment time." }, { status: 400 });
     }
@@ -138,10 +143,29 @@ export async function POST(request: Request) {
           transaction_id: String(transaction.id),
         },
       });
+
       checkoutUrl = checkout.checkout_url;
+
       await updateItem<Transaction>("transactions", transaction.id, {
         provider: "paymongo",
         reference: checkout.id,
+      });
+    }
+
+    if (paymentMethod === "xendit") {
+      const checkout = await createXenditPayment({
+        amount: Number(service.price),
+        referenceId: `PETBOOK-${appointment.id}-${Date.now()}`,
+        description: `${service.name} for ${pet.name} at ${shop.name}`,
+        successUrl: `${appConfig.appUrl}/payments/success?appointment=${appointment.id}`,
+        failureUrl: `${appConfig.appUrl}/appointments/${appointment.id}`,
+      });
+
+      checkoutUrl = checkout.checkoutUrl;
+
+      await updateItem<Transaction>("transactions", transaction.id, {
+        provider: "xendit",
+        reference: checkout.paymentRequestId,
       });
     }
 
@@ -169,9 +193,11 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
+
     if (error instanceof DirectusError) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
+
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "Unable to book." },
       { status: 500 }
