@@ -1,12 +1,16 @@
 import { appConfig } from "@/lib/config";
 import { createItem, listItems, updateItem } from "@/lib/directus";
+import { deliverEmail } from "@/lib/email";
+import { normalizePhilippineMobile } from "@/lib/phone";
 import type {
   AppNotification,
   Appointment,
   Customer,
   Reminder,
   Service,
+  Session,
   Shop,
+  Staff,
 } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 
@@ -22,6 +26,7 @@ type NewNotification = {
 
 async function sendSms(recipient: string, body: string) {
   const provider = appConfig.smsProvider;
+  const number = normalizePhilippineMobile(recipient) ?? recipient;
 
   if (provider === "twilio") {
     const sid = process.env.TWILIO_ACCOUNT_SID;
@@ -36,7 +41,7 @@ async function sendSms(recipient: string, body: string) {
           Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ To: recipient, From: from, Body: body }),
+        body: new URLSearchParams({ To: number, From: from, Body: body }),
       }
     );
     if (!response.ok) throw new Error(`Twilio rejected the message (${response.status}).`);
@@ -51,7 +56,7 @@ async function sendSms(recipient: string, body: string) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         apikey: apiKey,
-        number: recipient,
+        number: number.replace(/^\+/, ""),
         message: body,
         sendername: process.env.SEMAPHORE_SENDER_NAME ?? appConfig.name,
       }),
@@ -60,15 +65,14 @@ async function sendSms(recipient: string, body: string) {
     return "semaphore";
   }
 
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[sms:mock] To: ${number}\n${body}`);
+  }
   return "mock";
 }
 
 async function sendEmail(recipient: string, subject: string, body: string) {
-  const provider = appConfig.emailProvider;
-  if (provider === "mock" || !provider) {
-    return "mock";
-  }
-  return provider;
+  return deliverEmail({ to: recipient, subject, text: body });
 }
 
 export async function createNotification(input: NewNotification) {
@@ -109,7 +113,8 @@ export async function dispatchNotification(notification: AppNotification) {
   } catch (error) {
     await updateItem("notifications", notification.id, {
       status: "failed",
-      provider: appConfig.smsProvider,
+      provider:
+        notification.channel === "sms" ? appConfig.smsProvider : appConfig.emailProvider,
     });
     return {
       ok: false as const,
@@ -222,6 +227,79 @@ export async function notifyCustomer(options: {
     });
     await dispatchNotification(sms);
   }
+}
+
+export async function resolveLoginAlertPhone(session: Session) {
+  const candidates = [
+    session.customer?.phone,
+    session.staff?.phone,
+    session.shop?.phone,
+  ];
+  const mobile = candidates.find((phone) => phone && normalizePhilippineMobile(phone));
+  if (mobile) return mobile;
+
+  if (session.appRole === "business_owner") {
+    try {
+      const rows = await listItems<Staff>(
+        "staff",
+        `filter[user][_eq]=${session.user.id}&limit=1&fields=phone`
+      );
+      const staffPhone = rows[0]?.phone;
+      if (staffPhone && normalizePhilippineMobile(staffPhone)) return staffPhone;
+    } catch {
+      // Fall back to no SMS rather than blocking the login alert email.
+    }
+  }
+
+  return null;
+}
+
+export async function notifyLogin(options: {
+  email: string;
+  name: string;
+  role: string;
+  phone?: string | null;
+  customerId?: number | null;
+  shopId?: number | null;
+  ip?: string | null;
+  userAgent?: string | null;
+}) {
+  const when = new Intl.DateTimeFormat("en-PH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: appConfig.timezone,
+  }).format(new Date());
+  const device = options.userAgent?.trim().slice(0, 180) || "Unknown device";
+  const body = `Hi ${options.name},\n\nA new sign-in to your PetBook account was detected.\n\nTime: ${when}\nRole: ${options.role}\nIP: ${options.ip || "Unknown"}\nDevice: ${device}\n\nIf this was you, no action is needed. If you do not recognize this sign-in, change your password immediately.`;
+
+  const record = await createNotification({
+    customer: options.customerId ?? null,
+    shop: options.shopId ?? null,
+    appointment: null,
+    channel: "email",
+    recipient: options.email,
+    subject: "New sign-in to your PetBook account",
+    body,
+  });
+
+  const emailResult = await dispatchNotification(record);
+  const phone = options.phone?.trim();
+  let sms: Awaited<ReturnType<typeof dispatchNotification>> | null = null;
+
+  if (phone) {
+    const smsRecord = await createNotification({
+      customer: options.customerId ?? null,
+      shop: options.shopId ?? null,
+      appointment: null,
+      channel: "sms",
+      recipient: phone,
+      subject: null,
+      body: `PetBook: A new sign-in to your account was detected on ${when}. If this was not you, change your password immediately.`,
+    });
+    sms = await dispatchNotification(smsRecord);
+  }
+
+  return { ...emailResult, sms };
 }
 
 export async function pendingNotifications(limit = 50) {

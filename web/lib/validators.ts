@@ -1,25 +1,67 @@
 import { z } from "zod";
+import { normalizePhilippineMobile } from "@/lib/phone";
+
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Enter a valid email address.")
+  .max(254);
+
+export const otpVerifySchema = z.object({
+  email: emailSchema,
+  code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit verification code."),
+});
+
+export const otpResendSchema = z.object({
+  email: emailSchema,
+});
+
+export const phMobileSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter your Philippine mobile number.")
+  .refine((value) => normalizePhilippineMobile(value) !== null, {
+    message:
+      "Enter a valid Philippine mobile number, like +639171234567 or 09171234567.",
+  })
+  .transform((value) => normalizePhilippineMobile(value) as string);
+
+export const optionalPhMobileSchema = z
+  .union([z.literal(""), phMobileSchema])
+  .optional()
+  .transform((value) => value || null);
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: z.string().min(8),
 });
 
 export const customerRegisterSchema = z.object({
   role: z.enum(["customer", "pet_owner"]).default("pet_owner"),
-  first_name: z.string().min(1).max(100),
-  last_name: z.string().min(1).max(100),
-  email: z.string().email().max(150),
-  phone: z.string().max(32).optional().or(z.literal("")),
+  first_name: z.string().trim().min(1).max(100),
+  last_name: z.string().trim().min(1).max(100),
+  email: emailSchema,
+  phone: phMobileSchema,
   password: z.string().min(8).max(72),
 });
 
 export const registerSchema = customerRegisterSchema;
 
+export const passwordRequestSchema = z.object({
+  email: emailSchema,
+});
+
+export const passwordResetSchema = z.object({
+  email: emailSchema,
+  code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit reset code."),
+  password: z.string().min(8, "Use at least 8 characters.").max(72),
+});
+
 export const businessApplicationSchema = z.object({
   business_name: z.string().trim().min(2, "Enter your business name.").max(150),
   contact_name: z.string().trim().min(2, "Enter your full name.").max(150),
-  email: z.string().trim().email("Enter a valid email address.").max(150),
+  email: emailSchema,
   phone: z.string().trim().max(32).optional().or(z.literal("")),
   city: z.string().trim().max(120).optional().or(z.literal("")),
   address: z.string().trim().max(255).optional().or(z.literal("")),
@@ -93,7 +135,7 @@ export const reviewSchema = z.object({
 export const staffSchema = z.object({
   name: z.string().min(2).max(150),
   role: z.enum(["groomer", "vet", "assistant", "manager"]),
-  email: z.string().email().optional().or(z.literal("")),
+  email: emailSchema.optional().or(z.literal("")),
   phone: z.string().max(32).optional().or(z.literal("")),
   bio: z.string().max(2000).optional().or(z.literal("")),
   active: z.boolean().optional().default(true),
@@ -103,15 +145,15 @@ export const staffSchema = z.object({
 export const profileSchema = z.object({
   first_name: z.string().min(1).max(100),
   last_name: z.string().min(1).max(100),
-  email: z.string().email().max(255),
-  phone: z.string().max(32).optional().or(z.literal("")),
+  email: emailSchema,
+  phone: optionalPhMobileSchema,
   photo: z.string().max(64).nullable().optional(),
 });
 
 export const shopSettingsSchema = z.object({
   name: z.string().min(2).max(150),
   phone: z.string().max(32).optional().or(z.literal("")),
-  email: z.string().email().optional().or(z.literal("")),
+  email: emailSchema.optional().or(z.literal("")),
   city: z.string().max(120).optional().or(z.literal("")),
   address: z.string().max(255).optional().or(z.literal("")),
   description: z.string().max(2000).optional().or(z.literal("")),

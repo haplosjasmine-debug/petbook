@@ -8,6 +8,7 @@ import {
 } from "@/lib/accounts";
 import { adminSession, unauthorized } from "@/lib/authz";
 import { DirectusError, createItem, getItem, updateItem } from "@/lib/directus";
+import { sendBusinessApprovalEmail } from "@/lib/email";
 import type { BusinessApplication, Shop } from "@/lib/types";
 import { businessApplicationDecisionSchema } from "@/lib/validators";
 
@@ -96,9 +97,26 @@ export async function PATCH(
       }
     );
 
+    let emailSent = false;
+    try {
+      await sendBusinessApprovalEmail({
+        to: application.email,
+        contactName: application.contact_name,
+        businessName: application.business_name,
+        temporaryPassword: password,
+      });
+      emailSent = true;
+    } catch (error) {
+      console.error(
+        `Business approval email failed for application ${application.id}:`,
+        error instanceof Error ? error.message : error
+      );
+    }
+
     return NextResponse.json({
       application: updated,
       shop,
+      emailSent,
       credentials: {
         email: application.email,
         temporaryPassword: password,

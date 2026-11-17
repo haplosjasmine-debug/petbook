@@ -8,11 +8,19 @@ export const metadata = { title: "Sign in" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; verified?: string; reset?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const next =
     params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : undefined;
+
+  const notice = params.verified
+    ? "Email verified. Sign in to continue."
+    : params.reset
+      ? "Password updated. Sign in with your new password."
+      : params.error
+        ? "We could not complete sign-in with Google. Please try again or use your email and password."
+        : null;
 
   return (
     <section className="page-shell grid gap-10 py-14 lg:grid-cols-2 lg:items-center">
@@ -50,8 +58,16 @@ export default async function LoginPage({
           <p className="mt-1 text-sm text-muted-foreground">
             Use the email and password you registered with.
           </p>
+          {notice ? (
+            <p className="mt-4 rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-900">
+              {notice}
+            </p>
+          ) : null}
           <div className="mt-6">
-            <LoginForm next={next} />
+            <LoginForm
+              next={next}
+              googleEnabled={process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED === "true"}
+            />
           </div>
           <div className="mt-6 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
             Run a pet business?{" "}

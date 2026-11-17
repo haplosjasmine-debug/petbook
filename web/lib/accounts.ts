@@ -1,7 +1,13 @@
 import { randomBytes } from "node:crypto";
-import { DirectusError, adminRequest, listItems } from "@/lib/directus";
-import { DIRECTUS_ROLE_NAMES, type AppRole } from "@/lib/roles";
-import type { DirectusRole, DirectusUser, Shop } from "@/lib/types";
+import {
+  DirectusError,
+  adminRequest,
+  createItem,
+  listItems,
+  updateItem,
+} from "@/lib/directus";
+import { DIRECTUS_ROLE_NAMES, normalizeRole, type AppRole } from "@/lib/roles";
+import type { Customer, DirectusRole, DirectusUser, Shop } from "@/lib/types";
 
 export function splitName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -36,6 +42,59 @@ export async function findRole(role: AppRole) {
   return match;
 }
 
+export async function findUserByEmail(email: string) {
+  const result = await adminRequest<{ data: DirectusUser[] }>(
+    `/users?filter[email][_eq]=${encodeURIComponent(email.trim().toLowerCase())}&limit=1`
+  );
+  return result.data[0] ?? null;
+}
+
+function roleId(role: DirectusUser["role"]) {
+  return typeof role === "string" ? role : role?.id ?? null;
+}
+
+export async function ensureCustomerProfile(user: DirectusUser, phone?: string | null) {
+  const normalized = normalizeRole(user.role);
+  if (normalized && normalized !== "pet_owner") return null;
+  if (!normalized) {
+    const ownerRole = await findRole("pet_owner");
+    if (roleId(user.role) !== ownerRole.id) return null;
+  }
+
+  const existing = await listItems<Customer>(
+    "customers",
+    `filter[user][_eq]=${user.id}&limit=1`
+  );
+
+  if (existing[0]) {
+    if (phone && !existing[0].phone) {
+      return updateItem<Customer>("customers", existing[0].id, { phone });
+    }
+    return existing[0];
+  }
+
+  const fallbackName = splitName(user.email.split("@")[0] ?? user.email);
+  const first_name = user.first_name?.trim() || fallbackName.first_name;
+  const last_name = user.last_name?.trim() || fallbackName.last_name || "";
+
+  try {
+    return await createItem<Customer>("customers", {
+      user: user.id,
+      first_name,
+      last_name,
+      phone: phone || null,
+      loyalty_points: 0,
+    });
+  } catch (error) {
+    const raced = await listItems<Customer>(
+      "customers",
+      `filter[user][_eq]=${user.id}&limit=1`
+    );
+    if (raced[0]) return raced[0];
+    throw error;
+  }
+}
+
 export async function createAccount({
   email,
   password,
@@ -47,10 +106,8 @@ export async function createAccount({
   name: string;
   role: AppRole;
 }) {
-  const existing = await adminRequest<{ data: DirectusUser[] }>(
-    `/users?filter[email][_eq]=${encodeURIComponent(email)}&limit=1`
-  );
-  if (existing.data[0]) {
+  const existing = await findUserByEmail(email);
+  if (existing) {
     throw new DirectusError("An account with this email already exists.", 409);
   }
 
@@ -77,6 +134,14 @@ export async function updateAccount(
   const result = await adminRequest<{ data: DirectusUser }>(`/users/${id}`, {
     method: "PATCH",
     body,
+  });
+  return result.data;
+}
+
+export async function setAccountPassword(id: string, password: string) {
+  const result = await adminRequest<{ data: DirectusUser }>(`/users/${id}`, {
+    method: "PATCH",
+    body: { password },
   });
   return result.data;
 }

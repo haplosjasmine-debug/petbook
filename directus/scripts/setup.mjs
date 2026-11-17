@@ -1135,6 +1135,19 @@ async function setupPolicies() {
   for (const collection of ["customers", "pets"]) {
     await ensurePermission(staffPolicy, collection, "read");
   }
+
+  return { customerRole, shopRole, staffRole };
+}
+
+async function setupAuthSettings(customerRole) {
+  await raw("/settings", {
+    method: "PATCH",
+    body: {
+      public_registration: false,
+      public_registration_verify_email: false,
+      public_registration_role: customerRole,
+    },
+  });
 }
 
 async function main() {
@@ -1171,7 +1184,11 @@ async function main() {
   }
 
   log("\nRoles and policies");
-  await setupPolicies();
+  const roles = await setupPolicies();
+
+  log("\nAuth settings");
+  await attempt("disable native public registration", () => setupAuthSettings(roles.customerRole));
+  log("  = native registration disabled (web app uses email OTP)");
 
   log("\nClearing Directus caches");
   await attempt("clear cache", () => raw("/utils/cache/clear", { method: "POST" }));

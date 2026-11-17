@@ -1,41 +1,85 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createAccount } from "@/lib/accounts";
-import { DirectusError, createItem, loginDirectus } from "@/lib/directus";
-import { setSessionCookies } from "@/lib/session";
+import { ZodError } from "zod";
+import { findUserByEmail } from "@/lib/accounts";
+import { DirectusError } from "@/lib/directus";
+import { EmailDeliveryError, sendOtpEmail } from "@/lib/email";
+import { assertDeliverableEmail, EmailValidationError } from "@/lib/email-validation";
+import {
+  createOtpChallenge,
+  otpCookieOptions,
+  SIGNUP_OTP_COOKIE,
+} from "@/lib/email-verification";
+import { checkOtpRateLimit, recordOtpSend } from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validators";
+
+function clientIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
+}
 
 export async function POST(request: Request) {
   try {
     const input = registerSchema.parse(await request.json());
-    const user = await createAccount({
+    const rateKey = `customer_registration:${clientIp(request)}:${input.email}`;
+    const limit = checkOtpRateLimit(rateKey);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { message: `Please wait ${limit.retryAfter} seconds before requesting another code.` },
+        { status: 429 }
+      );
+    }
+
+    await assertDeliverableEmail(input.email);
+
+    const existing = await findUserByEmail(input.email);
+    if (existing && existing.status !== "unverified") {
+      return NextResponse.json(
+        {
+          message:
+            "An account with this email already exists. Sign in or reset your password instead.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const challenge = createOtpChallenge({
+      purpose: "customer_registration",
       email: input.email,
-      password: input.password,
-      name: `${input.first_name} ${input.last_name}`,
-      role: "pet_owner",
+      data: { ...input },
+    });
+    await sendOtpEmail({
+      to: input.email,
+      code: challenge.code,
+      purpose: "customer_registration",
     });
 
-    await createItem("customers", {
-      user: user.id,
-      first_name: input.first_name,
-      last_name: input.last_name,
-      phone: input.phone || null,
-      loyalty_points: 0,
+    const jar = await cookies();
+    jar.set(SIGNUP_OTP_COOKIE, challenge.token, otpCookieOptions(challenge.expiresAt));
+    recordOtpSend(rateKey);
+
+    return NextResponse.json({
+      message: "Verification code sent. Enter the code to finish creating your account.",
+      requiresVerification: true,
+      email: input.email,
+      expiresAt: challenge.expiresAt,
     });
-
-    const tokens = await loginDirectus(input.email, input.password);
-    await setSessionCookies(tokens);
-
-    return NextResponse.json(
-      { message: "Account created.", userId: user.id, home: "/" },
-      { status: 201 }
-    );
   } catch (error) {
-    if (error instanceof DirectusError) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { message: error.errors[0]?.message ?? "Check your account details." },
+        { status: 422 }
+      );
+    }
+    if (error instanceof EmailValidationError || error instanceof EmailDeliveryError) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 422 });
+    if (error instanceof DirectusError) {
+      return NextResponse.json(
+        { message: "Cannot reach the account service. Please try again shortly." },
+        { status: 503 }
+      );
     }
-    return NextResponse.json({ message: "Unable to create the account." }, { status: 500 });
+    return NextResponse.json({ message: "Unable to send the verification code." }, { status: 500 });
   }
 }

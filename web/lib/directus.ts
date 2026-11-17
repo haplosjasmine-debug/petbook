@@ -21,11 +21,13 @@ type RequestOptions = {
   headers?: Record<string, string>;
 };
 
-type AuthTokens = {
+export type DirectusAuthTokens = {
   access_token: string;
   refresh_token: string;
   expires: number;
 };
+
+type AuthTokens = DirectusAuthTokens;
 
 const globalCache = globalThis as typeof globalThis & {
   __petbookAdminToken?: { token: string; expiresAt: number };

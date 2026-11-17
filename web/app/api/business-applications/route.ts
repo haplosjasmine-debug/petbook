@@ -1,12 +1,32 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { createItem, listItems } from "@/lib/directus";
+import { listItems } from "@/lib/directus";
+import { EmailDeliveryError, sendOtpEmail } from "@/lib/email";
+import { assertDeliverableEmail, EmailValidationError } from "@/lib/email-validation";
+import {
+  BUSINESS_OTP_COOKIE,
+  createOtpChallenge,
+  otpCookieOptions,
+} from "@/lib/email-verification";
+import { checkOtpRateLimit, recordOtpSend } from "@/lib/rate-limit";
 import type { BusinessApplication } from "@/lib/types";
 import { businessApplicationSchema } from "@/lib/validators";
 
 export async function POST(request: Request) {
   try {
     const input = businessApplicationSchema.parse(await request.json());
+    const rateKey = `business_application:${input.email}`;
+    const limit = checkOtpRateLimit(rateKey);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { message: `Please wait ${limit.retryAfter} seconds before requesting another code.` },
+        { status: 429 }
+      );
+    }
+
+    await assertDeliverableEmail(input.email);
+
     const pending = await listItems<BusinessApplication>(
       "business_applications",
       `filter[email][_eq]=${encodeURIComponent(input.email)}&filter[status][_eq]=pending&limit=1`
@@ -19,21 +39,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const application = await createItem<BusinessApplication>("business_applications", {
-      business_name: input.business_name,
-      contact_name: input.contact_name,
+    const challenge = createOtpChallenge({
+      purpose: "business_application",
       email: input.email,
-      phone: input.phone || null,
-      city: input.city || null,
-      address: input.address || null,
-      message: input.message || null,
-      status: "pending",
+      data: { ...input },
+    });
+    await sendOtpEmail({
+      to: input.email,
+      code: challenge.code,
+      purpose: "business_application",
     });
 
-    return NextResponse.json(
-      { message: "Application submitted.", applicationId: application.id },
-      { status: 201 }
-    );
+    const jar = await cookies();
+    jar.set(BUSINESS_OTP_COOKIE, challenge.token, otpCookieOptions(challenge.expiresAt));
+    recordOtpSend(rateKey);
+
+    return NextResponse.json({
+      message: "Verification code sent.",
+      requiresVerification: true,
+      email: input.email,
+      expiresAt: challenge.expiresAt,
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
@@ -41,6 +67,9 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-    return NextResponse.json({ message: "Unable to submit your application." }, { status: 500 });
+    if (error instanceof EmailValidationError || error instanceof EmailDeliveryError) {
+      return NextResponse.json({ message: error.message }, { status: error.status });
+    }
+    return NextResponse.json({ message: "Unable to send the verification code." }, { status: 500 });
   }
 }

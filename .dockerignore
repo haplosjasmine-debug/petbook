@@ -1,0 +1,23 @@
+# Ignore version control
+.git
+.github
+
+# Ignore local dependencies
+node_modules
+web/node_modules
+cms/node_modules
+backend/vendor
+
+# Ignore local build artifacts
+.next
+web/.next
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+
+# Ignore environment and logs
+.env
+.env.*
+*.log
+*.err

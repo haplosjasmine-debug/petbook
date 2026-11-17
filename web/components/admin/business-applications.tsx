@@ -23,6 +23,7 @@ import { formatDate } from "@/lib/utils";
 type ApprovalResult = {
   application: BusinessApplication;
   shop?: Shop;
+  emailSent?: boolean;
   credentials?: { email: string; temporaryPassword: string };
 };
 
@@ -85,8 +86,10 @@ export function AdminBusinessApplications({
               <div>
                 <h3 className="font-black">Business owner account created</h3>
                 <p className="mt-1 text-sm text-emerald-900/70">
-                  Share these one-time credentials with the applicant. The password is not stored
-                  anywhere in PetBook.
+                  {result.emailSent
+                    ? "The login details were emailed to the verified business address."
+                    : "Email delivery failed. Share these one-time credentials with the applicant."}{" "}
+                  The password is not stored anywhere in PetBook.
                 </p>
                 <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   <div className="rounded-xl bg-white/80 px-3 py-2">
