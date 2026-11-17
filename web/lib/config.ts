@@ -9,9 +9,14 @@ export const appConfig = {
   smsProvider: process.env.SMS_PROVIDER ?? "mock",
   emailProvider: process.env.EMAIL_PROVIDER ?? "mock",
   paymentProvider: process.env.PAYMENT_PROVIDER ?? "mock",
-  directusUrl: process.env.DIRECTUS_URL ?? "http://127.0.0.1:8055",
+  directusUrl:
+    process.env.DIRECTUS_URL ||
+    process.env.NEXT_PUBLIC_DIRECTUS_URL ||
+    "http://127.0.0.1:8055",
   directusPublicUrl:
-    process.env.NEXT_PUBLIC_DIRECTUS_URL ?? "http://127.0.0.1:8055",
+    process.env.NEXT_PUBLIC_DIRECTUS_URL ||
+    process.env.DIRECTUS_URL ||
+    "http://127.0.0.1:8055",
 };
 
 export function directusAdminUrl() {

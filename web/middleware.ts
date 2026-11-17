@@ -17,9 +17,10 @@ export async function middleware(request: NextRequest) {
   const expiresAt = Number(request.cookies.get(EXPIRES_COOKIE)?.value ?? 0);
   const needsRefresh = !accessToken || expiresAt < Date.now() + 30_000;
 
-  if (needsRefresh && refreshToken && process.env.DIRECTUS_URL) {
+  const directusUrl = process.env.DIRECTUS_URL || process.env.NEXT_PUBLIC_DIRECTUS_URL;
+  if (needsRefresh && refreshToken && directusUrl) {
     try {
-      const response = await fetch(`${process.env.DIRECTUS_URL.replace(/\/$/, "")}/auth/refresh`, {
+      const response = await fetch(`${directusUrl.replace(/\/$/, "")}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken, mode: "json" }),
